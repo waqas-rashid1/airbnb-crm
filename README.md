@@ -30,7 +30,7 @@ Built for real multi-owner setups (investments, deposits, commissions) — not j
 | **Owners** | Multi-investor ledger — investment, withdrawal, profit distribution |
 | **Assets** | Refundable vs non-refundable inventory valuation |
 | **Property** | Multi-unit list/create, lease & landlord details, property switcher |
-| **Notes & Tasks** | Quick-add taskbar, priorities & due dates, pinned color notes |
+| **Notes & Tasks** | Quick-add taskbar, priorities & due dates, pinned notes; `@waqas` / `@naseeb` emails the note (free Resend or SMTP) |
 | **Reports** | P&L-style exports (CSV / Excel-compatible / print) |
 | **Settings** | Currency, default check-in/out times |
 | **Auth** | Credentials login, protected routes, light/dark mode |

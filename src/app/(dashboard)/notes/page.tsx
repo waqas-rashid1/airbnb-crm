@@ -5,6 +5,8 @@ import {
 } from "@/lib/property-context";
 import { PageHeader } from "@/components/shared/page-header";
 import { NotesTasksView } from "@/components/notes/notes-tasks-view";
+import { listMentionTargets } from "@/lib/mention-notify";
+import { isMailConfigured } from "@/lib/mail";
 
 export default async function NotesPage() {
   const [property, properties] = await Promise.all([
@@ -16,7 +18,7 @@ export default async function NotesPage() {
     return <p className="text-muted-foreground">No property configured.</p>;
   }
 
-  const [tasks, notes] = await Promise.all([
+  const [tasks, notes, mentionTargets] = await Promise.all([
     prisma.task.findMany({
       where: { propertyId: property.id },
       orderBy: [{ status: "asc" }, { priority: "asc" }, { dueDate: "asc" }],
@@ -25,13 +27,20 @@ export default async function NotesPage() {
       where: { propertyId: property.id },
       orderBy: [{ pinned: "desc" }, { updatedAt: "desc" }],
     }),
+    listMentionTargets(property.id),
   ]);
+
+  const mailReady = isMailConfigured();
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Notes & Tasks"
-        description="Quick capture bar for ops to-dos, plus pinned notes for codes, reminders, and landlord details"
+        description={
+          mailReady
+            ? "Quick capture for ops to-dos. Tag @waqas or @naseeb in a note to email them."
+            : "Quick capture for ops to-dos. Add RESEND_API_KEY or SMTP_* env vars to enable @mention emails."
+        }
       />
       <NotesTasksView
         tasks={tasks.map((t) => ({
@@ -62,6 +71,7 @@ export default async function NotesPage() {
           roomNumber: p.roomNumber,
         }))}
         selectedPropertyId={property.id}
+        mentionTargets={mentionTargets}
       />
     </div>
   );

@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { format, isPast, isToday, isTomorrow, parseISO, startOfDay } from "date-fns";
 import {
+  AtSign,
   CheckCircle2,
   Circle,
   ClipboardList,
@@ -52,6 +53,46 @@ import {
 import { ConfirmDelete } from "@/components/shared/confirm-delete";
 import { EmptyState } from "@/components/shared/empty-state";
 import { cn } from "@/lib/utils";
+import {
+  splitMentionParts,
+  type MentionNotifyResult,
+  type MentionTarget,
+} from "@/lib/mentions";
+
+function MentionText({ text, className }: { text: string; className?: string }) {
+  return (
+    <span className={className}>
+      {splitMentionParts(text).map((part, i) =>
+        part.type === "mention" ? (
+          <span
+            key={i}
+            className="rounded bg-teal-500/15 px-1 py-0.5 font-medium text-teal-800 dark:text-teal-300"
+          >
+            {part.value}
+          </span>
+        ) : (
+          <span key={i}>{part.value}</span>
+        )
+      )}
+    </span>
+  );
+}
+
+function toastMentions(mentions?: MentionNotifyResult) {
+  if (!mentions) return;
+  if (mentions.emailed.length) {
+    toast.success(`Emailed ${mentions.emailed.join(" · ")}`);
+  }
+  if (mentions.skipped.length && !mentions.emailed.length) {
+    toast.message(
+      mentions.mailConfigured
+        ? `No email for @${mentions.skipped.join(", @")} — set it on Owners or MENTION_EMAIL_*`
+        : "Note saved. Add RESEND_API_KEY or SMTP_* to enable @mention emails."
+    );
+  } else if (mentions.errors.length && mentions.emailed.length) {
+    toast.message(mentions.errors[0]);
+  }
+}
 
 export type TaskRow = {
   id: string;
@@ -88,6 +129,7 @@ type NotesTasksViewProps = {
   notes: NoteRow[];
   properties: PropertyOption[];
   selectedPropertyId: string;
+  mentionTargets: MentionTarget[];
 };
 
 const PRIORITY_STYLES = {
@@ -119,6 +161,7 @@ export function NotesTasksView({
   notes,
   properties,
   selectedPropertyId,
+  mentionTargets,
 }: NotesTasksViewProps) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -309,8 +352,17 @@ export function NotesTasksView({
         return;
       }
       toast.success(editingNote ? "Note updated" : "Note saved");
+      toastMentions(res.data?.mentions);
       setNoteDialog(false);
       refresh();
+    });
+  }
+
+  function insertMention(handle: string) {
+    const tag = `@${handle}`;
+    setNoteForm((f) => {
+      const body = f.body?.trim() ? `${f.body.trim()} ${tag}` : tag;
+      return { ...f, body };
     });
   }
 
@@ -572,10 +624,20 @@ export function NotesTasksView({
         </TabsContent>
 
         <TabsContent value="notes" className="mt-0 space-y-4">
+          <div className="flex flex-wrap items-start gap-2 rounded-xl border border-dashed border-teal-200/80 bg-teal-50/50 px-3.5 py-3 text-[13px] text-teal-900 dark:border-teal-900 dark:bg-teal-950/30 dark:text-teal-100">
+            <AtSign className="mt-0.5 h-4 w-4 shrink-0 opacity-70" />
+            <p className="min-w-0 flex-1 leading-relaxed">
+              Tag someone to email them the note — try{" "}
+              <span className="font-semibold">@waqas</span> or{" "}
+              <span className="font-semibold">@naseeb</span>. Emails come from
+              the Owners page (or <code className="text-[12px]">MENTION_EMAIL_*</code>{" "}
+              env).
+            </p>
+          </div>
           {sortedNotes.length === 0 ? (
             <EmptyState
               title="No notes yet"
-              description="Park landlord reminders, Wi‑Fi codes, and ops details here — pinned notes stay on top."
+              description="Park landlord reminders, Wi‑Fi codes, and ops details here — pin important ones, and @tag partners to email them."
             />
           ) : (
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -589,7 +651,7 @@ export function NotesTasksView({
                 >
                   <div className="mb-2 flex items-start justify-between gap-2">
                     <h3 className="text-[14.5px] font-semibold leading-snug tracking-tight">
-                      {note.title}
+                      <MentionText text={note.title} />
                     </h3>
                     <div className="flex shrink-0 gap-0.5">
                       <Button
@@ -613,7 +675,7 @@ export function NotesTasksView({
                     </div>
                   </div>
                   <p className="flex-1 whitespace-pre-wrap text-[13px] leading-relaxed text-foreground/80">
-                    {note.body}
+                    <MentionText text={note.body} />
                   </p>
                   <div className="mt-3 flex items-center justify-between border-t border-border/50 pt-2">
                     <span className="text-[11px] text-muted-foreground">
@@ -795,8 +857,36 @@ export function NotesTasksView({
                   setNoteForm((f) => ({ ...f, body: e.target.value }))
                 }
                 rows={6}
-                placeholder="Write anything you need to remember…"
+                placeholder="Write anything… tag @waqas or @naseeb to email them"
               />
+              {mentionTargets.length ? (
+                <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                  <span className="text-[11px] text-muted-foreground">
+                    Notify:
+                  </span>
+                  {mentionTargets.map((t) => (
+                    <button
+                      key={t.handle}
+                      type="button"
+                      onClick={() => insertMention(t.handle)}
+                      className={cn(
+                        "rounded-md px-2 py-0.5 text-[11.5px] font-medium ring-1 ring-inset transition-colors",
+                        t.hasEmail
+                          ? "bg-teal-50 text-teal-800 ring-teal-200 hover:bg-teal-100 dark:bg-teal-950/50 dark:text-teal-200 dark:ring-teal-800"
+                          : "bg-muted text-muted-foreground ring-border hover:bg-muted/80"
+                      )}
+                      title={
+                        t.hasEmail
+                          ? `Insert @${t.handle} (email ready)`
+                          : `Insert @${t.handle} — set email on Owners first`
+                      }
+                    >
+                      @{t.handle}
+                      {!t.hasEmail ? " · no email" : null}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">

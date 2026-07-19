@@ -98,10 +98,21 @@ async function main() {
   });
   console.log("✓ Settings");
 
+  const waqasEmail =
+    process.env.MENTION_EMAIL_WAQAS?.trim() ||
+    process.env.OWNER_EMAIL_WAQAS?.trim() ||
+    process.env.ADMIN_EMAIL?.trim() ||
+    null;
+  const naseebEmail =
+    process.env.MENTION_EMAIL_NASEEB?.trim() ||
+    process.env.OWNER_EMAIL_NASEEB?.trim() ||
+    null;
+
   const waqas = await prisma.owner.create({
     data: {
       propertyId: property.id,
       name: "Waqas",
+      email: waqasEmail?.toLowerCase() || null,
       investment: 2000,
       balance: 2000,
       notes: "Minor investor",
@@ -122,6 +133,7 @@ async function main() {
     data: {
       propertyId: property.id,
       name: "Naseeb",
+      email: naseebEmail?.toLowerCase() || null,
       investment: 410000,
       balance: 410000,
       notes: "Primary investor",
@@ -137,7 +149,9 @@ async function main() {
       balanceAfter: 410000,
     },
   });
-  console.log("✓ Owners: Waqas (2,000), Naseeb (410,000)");
+  console.log(
+    `✓ Owners: Waqas (2,000${waqasEmail ? `, ${waqasEmail}` : ""}), Naseeb (410,000${naseebEmail ? `, ${naseebEmail}` : ""})`
+  );
 
   // Only real booking
   await prisma.booking.create({
