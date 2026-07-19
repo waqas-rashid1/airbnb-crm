@@ -5,26 +5,34 @@ import { loginAction } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Home } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { BrandLogo } from "@/components/brand/logo";
 
 export default function LoginPage() {
   const [state, formAction, pending] = useActionState(loginAction, undefined);
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-200 via-background to-background dark:from-zinc-900 dark:via-background" />
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,hsl(var(--border))_1px,transparent_1px),linear-gradient(to_bottom,hsl(var(--border))_1px,transparent_1px)] bg-[size:4rem_4rem] opacity-40" />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden p-4">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(900px_420px_at_20%_-10%,hsl(var(--surface-glow)),transparent_60%),radial-gradient(700px_360px_at_90%_10%,hsl(var(--brand)/0.14),transparent_55%),hsl(var(--background))]" />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.35] [background-image:radial-gradient(hsl(var(--foreground)/0.08)_1px,transparent_1px)] [background-size:22px_22px]" />
 
-      <Card className="relative z-10 w-full max-w-md border-border/60 shadow-xl">
-        <CardHeader className="space-y-4 text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm">
-            <Home className="h-6 w-6" />
+      <Card className="glass-panel relative z-10 w-full max-w-md border-[hsl(var(--brand)/0.18)] shadow-[0_30px_80px_-40px_hsl(var(--brand)/0.55)]">
+        <CardHeader className="space-y-5 text-center">
+          <div className="mx-auto">
+            <BrandLogo size="lg" className="justify-center" />
           </div>
           <div>
-            <CardTitle className="text-2xl tracking-tight">StayCRM</CardTitle>
-            <CardDescription className="mt-1.5">
-              Sign in to manage your property
+            <CardTitle className="font-display text-3xl tracking-tight">
+              Welcome back
+            </CardTitle>
+            <CardDescription className="mt-2 text-sm">
+              Sign in to manage stays, cashflow, and owners
             </CardDescription>
           </div>
         </CardHeader>
@@ -39,6 +47,7 @@ export default function LoginPage() {
                 placeholder="you@example.com"
                 required
                 autoComplete="email"
+                className="h-11 rounded-xl"
               />
             </div>
             <div className="space-y-2">
@@ -50,12 +59,17 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 required
                 autoComplete="current-password"
+                className="h-11 rounded-xl"
               />
             </div>
             {state?.error && (
               <p className="text-sm text-destructive">{state.error}</p>
             )}
-            <Button type="submit" className="w-full" disabled={pending}>
+            <Button
+              type="submit"
+              className="h-11 w-full rounded-xl text-base font-semibold"
+              disabled={pending}
+            >
               {pending ? "Signing in..." : "Sign in"}
             </Button>
           </form>

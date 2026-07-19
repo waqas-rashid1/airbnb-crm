@@ -38,10 +38,10 @@ export function Header({
   const parts = pathname.split("/").filter(Boolean);
 
   return (
-    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b bg-background/80 px-4 backdrop-blur-md lg:px-6">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-border/70 bg-background/70 px-4 backdrop-blur-xl lg:px-6">
       <div className="flex items-center gap-2 pl-12 lg:pl-0">
         <nav className="flex items-center gap-1 text-sm text-muted-foreground">
-          <Link href="/dashboard" className="hover:text-foreground">
+          <Link href="/dashboard" className="hover:text-[hsl(var(--brand))]">
             Home
           </Link>
           {parts.map((part, i) => (
@@ -52,7 +52,7 @@ export function Header({
                 className={
                   i === parts.length - 1
                     ? "font-medium text-foreground"
-                    : "hover:text-foreground"
+                    : "hover:text-[hsl(var(--brand))]"
                 }
               >
                 {labels[part] || part}

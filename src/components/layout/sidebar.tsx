@@ -14,11 +14,11 @@ import {
   Settings,
   Menu,
   X,
-  Home,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { BrandLogo } from "@/components/brand/logo";
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -38,28 +38,23 @@ export function Sidebar() {
 
   const Nav = (
     <div className="flex h-full flex-col">
-      <div className="flex h-14 items-center gap-2 border-b border-sidebar-border px-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <Home className="h-4 w-4" />
-        </div>
-        <div className="flex flex-col">
-          <span className="text-sm font-semibold tracking-tight">StayCRM</span>
-          <span className="text-[10px] text-muted-foreground">Property Manager</span>
-        </div>
+      <div className="flex h-16 items-center border-b border-sidebar-border px-4">
+        <BrandLogo size="sm" />
       </div>
       <nav className="flex-1 space-y-1 p-3">
         {navItems.map((item) => {
-          const active = pathname === item.href || pathname.startsWith(item.href + "/");
+          const active =
+            pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Link
               key={item.href}
               href={item.href}
               onClick={() => setOpen(false)}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                "nav-link flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium",
                 active
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-sidebar-foreground hover:bg-accent hover:text-accent-foreground"
+                  ? "bg-[hsl(var(--brand))] text-white shadow-[0_10px_24px_-14px_hsl(var(--brand))]"
+                  : "text-sidebar-foreground hover:bg-[hsl(var(--brand-soft))] hover:text-[hsl(var(--brand))]"
               )}
             >
               <item.icon className="h-4 w-4 shrink-0" />
@@ -69,7 +64,9 @@ export function Sidebar() {
         })}
       </nav>
       <div className="border-t border-sidebar-border p-4">
-        <p className="text-xs text-muted-foreground">Multi-property CRM</p>
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          Short-stay operations, cashflow & owners — in one place.
+        </p>
       </div>
     </div>
   );
@@ -79,7 +76,7 @@ export function Sidebar() {
       <Button
         variant="outline"
         size="icon"
-        className="fixed left-4 top-3 z-50 lg:hidden"
+        className="fixed left-4 top-3 z-50 rounded-xl lg:hidden"
         onClick={() => setOpen(!open)}
       >
         {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
@@ -94,7 +91,7 @@ export function Sidebar() {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 w-60 border-r border-sidebar-border bg-sidebar transition-transform lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 w-64 border-r border-sidebar-border bg-sidebar/95 backdrop-blur-xl transition-transform lg:translate-x-0",
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >

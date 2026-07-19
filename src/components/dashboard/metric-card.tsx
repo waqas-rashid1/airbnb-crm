@@ -26,26 +26,35 @@ export function MetricCard({
   const positive = trend ? trend.value >= 0 : null;
 
   return (
-    <Card className={cn("shadow-sm", className)}>
+    <Card
+      className={cn(
+        "metric-card overflow-hidden border-border/80 bg-card/90 shadow-[0_10px_30px_-24px_hsl(var(--foreground)/0.35)]",
+        className
+      )}
+    >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
         </CardTitle>
         {Icon ? (
-          <div className="flex h-8 w-8 items-center justify-center rounded-md border bg-muted/40">
-            <Icon className="h-4 w-4 text-muted-foreground" />
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[hsl(var(--brand-soft))] text-[hsl(var(--brand))]">
+            <Icon className="h-4 w-4" />
           </div>
         ) : null}
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-semibold tracking-tight">{value}</div>
+        <div className="font-display text-2xl font-semibold tracking-tight">
+          {value}
+        </div>
         {(subtitle || trend) && (
-          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             {trend ? (
               <span
                 className={cn(
                   "inline-flex items-center gap-0.5 font-medium",
-                  positive ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"
+                  positive
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-red-600 dark:text-red-400"
                 )}
               >
                 {positive ? (
