@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   DollarSign,
   TrendingDown,
@@ -9,8 +10,12 @@ import {
   Moon,
   LogIn,
   LogOut,
+  Building2,
 } from "lucide-react";
-import { getPrimaryProperty } from "@/lib/safe-action";
+import {
+  getSelectedProperty,
+  propertyLabel,
+} from "@/lib/property-context";
 import {
   getDashboardMetrics,
   getMonthlySeries,
@@ -28,14 +33,26 @@ import {
   ProfitLossChart,
 } from "@/components/dashboard/charts";
 import { PageHeader } from "@/components/shared/page-header";
+import { EmptyState } from "@/components/shared/empty-state";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function DashboardPage() {
-  const property = await getPrimaryProperty();
+  const property = await getSelectedProperty();
   if (!property) {
     return (
-      <div className="rounded-xl border border-dashed p-12 text-center">
-        <p className="text-muted-foreground">No property found. Run the database seed.</p>
+      <div className="space-y-6">
+        <PageHeader title="Dashboard" description="Financial overview" />
+        <EmptyState
+          icon={Building2}
+          title="No property selected"
+          description="Add a property to see revenue, expenses, and occupancy metrics."
+          action={
+            <Button asChild size="sm">
+              <Link href="/property">Go to properties</Link>
+            </Button>
+          }
+        />
       </div>
     );
   }
@@ -59,7 +76,7 @@ export default async function DashboardPage() {
     <div className="space-y-6">
       <PageHeader
         title="Dashboard"
-        description={`${property.name} · Financial overview`}
+        description={`${propertyLabel(property)} · Financial overview`}
       />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">

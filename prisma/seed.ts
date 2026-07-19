@@ -45,12 +45,12 @@ async function main() {
 
   const property = await prisma.property.create({
     data: {
-      name: "Downtown Airbnb Suite",
-      buildingName: null,
-      roomNumber: null,
-      floor: null,
+      name: "Apt. 625 · Gold Crest",
+      buildingName: "Gold Crest",
+      roomNumber: "625",
+      floor: "6th",
       city: "Lahore",
-      address: "Lahore, Pakistan",
+      address: "Gold Crest, 6th Floor, Apt. 625, Lahore",
       unitType: "Apartment",
       monthlyRent: 190000,
       securityDeposit: 190000,
@@ -64,7 +64,7 @@ async function main() {
       landlordNotes: null,
     },
   });
-  console.log(`✓ Property: ${property.name}`);
+  console.log(`✓ Property: Apt. 625 at Gold Crest, 6th floor`);
 
   await prisma.settings.create({
     data: {

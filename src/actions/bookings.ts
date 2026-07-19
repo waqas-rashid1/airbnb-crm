@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
-import { requireAuth, requireProperty, type ActionResult } from "@/lib/safe-action";
+import { requireAuth, type ActionResult } from "@/lib/safe-action";
+import { resolvePropertyId } from "@/lib/property-context";
 import { bookingSchema, type BookingInput } from "@/schemas";
 import {
   calculateNights,
@@ -13,17 +14,17 @@ import {
 export async function createBooking(input: BookingInput): Promise<ActionResult> {
   try {
     await requireAuth();
-    const property = await requireProperty();
     const parsed = bookingSchema.parse(input);
+    const propertyId = await resolvePropertyId(parsed.propertyId);
 
-    const count = await prisma.booking.count();
+    const count = await prisma.booking.count({ where: { propertyId } });
     const nights = calculateNights(parsed.checkInDate, parsed.checkOutDate);
     const netRevenue = calculateNetRevenue(parsed);
 
     const booking = await prisma.booking.create({
       data: {
         bookingCode: generateBookingCode(count + 1),
-        propertyId: property.id,
+        propertyId,
         guestName: parsed.guestName,
         phone: parsed.phone || null,
         platform: parsed.platform,
@@ -46,6 +47,7 @@ export async function createBooking(input: BookingInput): Promise<ActionResult> 
 
     revalidatePath("/bookings");
     revalidatePath("/dashboard");
+    revalidatePath("/reimburse");
     return { success: true, data: booking };
   } catch (e) {
     return { success: false, error: e instanceof Error ? e.message : "Failed to create booking" };
@@ -61,10 +63,12 @@ export async function updateBooking(
     const parsed = bookingSchema.parse(input);
     const nights = calculateNights(parsed.checkInDate, parsed.checkOutDate);
     const netRevenue = calculateNetRevenue(parsed);
+    const propertyId = await resolvePropertyId(parsed.propertyId);
 
     const booking = await prisma.booking.update({
       where: { id },
       data: {
+        propertyId,
         guestName: parsed.guestName,
         phone: parsed.phone || null,
         platform: parsed.platform,
@@ -87,6 +91,7 @@ export async function updateBooking(
 
     revalidatePath("/bookings");
     revalidatePath("/dashboard");
+    revalidatePath("/reimburse");
     return { success: true, data: booking };
   } catch (e) {
     return { success: false, error: e instanceof Error ? e.message : "Failed to update booking" };
@@ -99,6 +104,7 @@ export async function deleteBooking(id: string): Promise<ActionResult> {
     await prisma.booking.delete({ where: { id } });
     revalidatePath("/bookings");
     revalidatePath("/dashboard");
+    revalidatePath("/reimburse");
     return { success: true, data: null };
   } catch (e) {
     return { success: false, error: e instanceof Error ? e.message : "Failed to delete booking" };

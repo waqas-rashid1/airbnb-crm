@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
-import { requireAuth, requireProperty, type ActionResult } from "@/lib/safe-action";
+import { requireAuth, type ActionResult } from "@/lib/safe-action";
+import { resolvePropertyId } from "@/lib/property-context";
 import {
   ownerSchema,
   ownerTransactionSchema,
@@ -14,12 +15,12 @@ import { toNumber } from "@/lib/calculations";
 export async function createOwner(input: OwnerInput): Promise<ActionResult> {
   try {
     await requireAuth();
-    const property = await requireProperty();
     const parsed = ownerSchema.parse(input);
+    const propertyId = await resolvePropertyId(parsed.propertyId);
 
     const owner = await prisma.owner.create({
       data: {
-        propertyId: property.id,
+        propertyId,
         name: parsed.name,
         email: parsed.email || null,
         phone: parsed.phone || null,
@@ -40,9 +41,11 @@ export async function updateOwner(id: string, input: OwnerInput): Promise<Action
     await requireAuth();
     const parsed = ownerSchema.parse(input);
 
+    const propertyId = await resolvePropertyId(parsed.propertyId);
     const owner = await prisma.owner.update({
       where: { id },
       data: {
+        propertyId,
         name: parsed.name,
         email: parsed.email || null,
         phone: parsed.phone || null,

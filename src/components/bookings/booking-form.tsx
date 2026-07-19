@@ -31,6 +31,24 @@ import {
   STATUS_LABELS,
 } from "@/lib/calculations";
 
+export type FormPropertyOption = {
+  id: string;
+  name: string;
+  buildingName: string | null;
+  roomNumber: string | null;
+  floor?: string | null;
+  city?: string | null;
+};
+
+function optionLabel(p: FormPropertyOption): string {
+  const parts = [
+    p.roomNumber ? `Apt. ${p.roomNumber}` : null,
+    p.buildingName,
+  ].filter(Boolean);
+  if (parts.length) return parts.join(" · ");
+  return p.name;
+}
+
 type BookingFormProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -38,9 +56,12 @@ type BookingFormProps = {
   defaultValues?: Partial<BookingInput>;
   onSubmit: (data: BookingInput) => Promise<void> | void;
   currencySymbol?: string;
+  properties: FormPropertyOption[];
+  defaultPropertyId?: string | null;
 };
 
 const defaults: BookingInput = {
+  propertyId: "",
   guestName: "",
   phone: "",
   platform: "AIRBNB",
@@ -65,11 +86,17 @@ export function BookingForm({
   defaultValues,
   onSubmit,
   currencySymbol = "Rs",
+  properties,
+  defaultPropertyId,
 }: BookingFormProps) {
   const form = useForm<BookingInput>({
     // Zod `.default()` makes input/output differ; cast keeps RHF types aligned
     resolver: zodResolver(bookingSchema) as never,
-    defaultValues: { ...defaults, ...defaultValues },
+    defaultValues: {
+      ...defaults,
+      propertyId: defaultPropertyId ?? "",
+      ...defaultValues,
+    },
   });
 
   const {
@@ -83,9 +110,13 @@ export function BookingForm({
 
   useEffect(() => {
     if (open) {
-      reset({ ...defaults, ...defaultValues });
+      reset({
+        ...defaults,
+        propertyId: defaultPropertyId ?? "",
+        ...defaultValues,
+      });
     }
-  }, [open, defaultValues, reset]);
+  }, [open, defaultValues, defaultPropertyId, reset]);
 
   const watched = watch();
   const nights = useMemo(() => {
@@ -126,6 +157,30 @@ export function BookingForm({
         </DialogHeader>
 
         <form onSubmit={submit} className="space-y-4">
+          <div className="space-y-2">
+            <Label>Property</Label>
+            <Select
+              value={watched.propertyId || undefined}
+              onValueChange={(v) =>
+                setValue("propertyId", v, { shouldValidate: true })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select property" />
+              </SelectTrigger>
+              <SelectContent>
+                {properties.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {optionLabel(p)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.propertyId && (
+              <p className="text-xs text-destructive">{errors.propertyId.message}</p>
+            )}
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="guestName">Guest name</Label>

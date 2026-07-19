@@ -1,11 +1,14 @@
 import { prisma } from "@/lib/db";
-import { getPrimaryProperty } from "@/lib/safe-action";
+import {
+  getSelectedProperty,
+  propertyLabel,
+} from "@/lib/property-context";
 import { toNumber } from "@/lib/calculations";
 import { ReportsView } from "@/components/reports/reports-view";
 import { PageHeader } from "@/components/shared/page-header";
 
 export default async function ReportsPage() {
-  const property = await getPrimaryProperty();
+  const property = await getSelectedProperty();
   if (!property) {
     return <p className="text-muted-foreground">No property configured.</p>;
   }
@@ -33,11 +36,12 @@ export default async function ReportsPage() {
     <div className="space-y-6">
       <PageHeader
         title="Reports"
-        description="Profit & loss, cash flow, occupancy, and exports"
+        description={`${propertyLabel(property)} · Profit & loss, cash flow, occupancy, and exports`}
       />
       <ReportsView
         bookings={bookings.map((b) => ({
           id: b.id,
+          propertyId: b.propertyId,
           bookingCode: b.bookingCode,
           guestName: b.guestName,
           phone: b.phone,
@@ -59,6 +63,7 @@ export default async function ReportsPage() {
         }))}
         expenses={expenses.map((e) => ({
           id: e.id,
+          propertyId: e.propertyId,
           date: e.date.toISOString(),
           category: e.category,
           description: e.description,
@@ -89,6 +94,7 @@ export default async function ReportsPage() {
         }))}
         assets={assets.map((a) => ({
           id: a.id,
+          propertyId: a.propertyId,
           name: a.name,
           purchaseDate: a.purchaseDate?.toISOString() ?? null,
           cost: toNumber(a.cost),

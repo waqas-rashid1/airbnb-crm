@@ -34,6 +34,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Table,
   TableBody,
   TableCell,
@@ -45,6 +52,7 @@ import {
   reimbursementSchema,
   type ReimbursementInput,
 } from "@/schemas";
+import type { FundSource } from "@/lib/fund-sources";
 import {
   EXPENSE_LABELS,
   REIMBURSEMENT_STATUS_LABELS,
@@ -72,9 +80,21 @@ export type SerializedExpense = {
   }>;
 };
 
+type FundSummary = {
+  revenue: number;
+  operatingExpenses: number;
+  refundableHeld: number;
+  operatingProfit: number;
+  investment: number;
+  cashBalance: number;
+};
+
 type ReimburseViewProps = {
   expenses: SerializedExpense[];
   currencySymbol?: string;
+  fundSources: FundSource[];
+  fundSummary: FundSummary;
+  propertyLabel?: string;
 };
 
 type PersonBreakdown = {
@@ -88,14 +108,27 @@ function outstandingOf(e: SerializedExpense): number {
   return Math.max(0, e.amount - e.reimbursedAmount);
 }
 
+function formatAvailable(
+  source: FundSource | undefined,
+  currencySymbol: string
+): string {
+  if (!source) return "";
+  if (!Number.isFinite(source.available)) return "Manual / unlimited";
+  return `Available: ${formatCurrency(source.available, currencySymbol)}`;
+}
+
 export function ReimburseView({
   expenses,
   currencySymbol = "Rs",
+  fundSources,
+  fundSummary,
+  propertyLabel,
 }: ReimburseViewProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selected, setSelected] = useState<SerializedExpense | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [paidFromId, setPaidFromId] = useState<string>("");
 
   const form = useForm<ReimbursementInput>({
     resolver: zodResolver(reimbursementSchema) as never,
@@ -113,8 +146,14 @@ export function ReimburseView({
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = form;
+
+  const selectedSource = useMemo(
+    () => fundSources.find((s) => s.id === paidFromId),
+    [fundSources, paidFromId]
+  );
 
   const totals = useMemo(() => {
     let fronted = 0;
@@ -190,6 +229,7 @@ export function ReimburseView({
   function openRecord(expense: SerializedExpense) {
     const outstanding = outstandingOf(expense);
     setSelected(expense);
+    setPaidFromId("");
     reset({
       expenseId: expense.id,
       amount: Number(outstanding.toFixed(2)),
@@ -207,6 +247,7 @@ export function ReimburseView({
       toast.success("Reimbursement recorded");
       setDialogOpen(false);
       setSelected(null);
+      setPaidFromId("");
     } else {
       toast.error(result.error);
     }
@@ -227,6 +268,47 @@ export function ReimburseView({
 
   return (
     <div className="space-y-6">
+      {propertyLabel ? (
+        <p className="text-sm text-muted-foreground">
+          Paying from funds for <span className="font-medium text-foreground">{propertyLabel}</span>
+        </p>
+      ) : null}
+
+      <div className="grid gap-3 rounded-xl border bg-muted/20 p-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <div className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            Revenue
+          </div>
+          <div className="mt-0.5 text-lg font-semibold tabular-nums">
+            {formatCurrency(fundSummary.revenue, currencySymbol)}
+          </div>
+        </div>
+        <div>
+          <div className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            Operating profit
+          </div>
+          <div className="mt-0.5 text-lg font-semibold tabular-nums">
+            {formatCurrency(fundSummary.operatingProfit, currencySymbol)}
+          </div>
+        </div>
+        <div>
+          <div className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            Investment
+          </div>
+          <div className="mt-0.5 text-lg font-semibold tabular-nums">
+            {formatCurrency(fundSummary.investment, currencySymbol)}
+          </div>
+        </div>
+        <div>
+          <div className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            Cash balance
+          </div>
+          <div className="mt-0.5 text-lg font-semibold tabular-nums">
+            {formatCurrency(fundSummary.cashBalance, currencySymbol)}
+          </div>
+        </div>
+      </div>
+
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           title="Total fronted"
@@ -452,7 +534,10 @@ export function ReimburseView({
         open={dialogOpen}
         onOpenChange={(open) => {
           setDialogOpen(open);
-          if (!open) setSelected(null);
+          if (!open) {
+            setSelected(null);
+            setPaidFromId("");
+          }
         }}
       >
         <DialogContent className="max-w-md">
@@ -467,6 +552,7 @@ export function ReimburseView({
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <input type="hidden" {...register("expenseId")} />
+            <input type="hidden" {...register("paidFrom")} />
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
@@ -500,12 +586,36 @@ export function ReimburseView({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="paidFrom">Paid from</Label>
-              <Input
-                id="paidFrom"
-                placeholder='e.g. "Booking revenue", "Bootstrap cash", "Owner: Naseeb"'
-                {...register("paidFrom")}
-              />
+              <Label>Paid from</Label>
+              <Select
+                value={paidFromId || undefined}
+                onValueChange={(id) => {
+                  setPaidFromId(id);
+                  const source = fundSources.find((s) => s.id === id);
+                  setValue("paidFrom", source?.label ?? id, {
+                    shouldValidate: true,
+                  });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select fund source" />
+                </SelectTrigger>
+                <SelectContent>
+                  {fundSources.map((s) => (
+                    <SelectItem key={s.id} value={s.id}>
+                      {s.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {selectedSource ? (
+                <p className="text-xs text-muted-foreground">
+                  {formatAvailable(selectedSource, currencySymbol)}
+                  {selectedSource.description
+                    ? ` · ${selectedSource.description}`
+                    : ""}
+                </p>
+              ) : null}
             </div>
 
             <div className="space-y-2">

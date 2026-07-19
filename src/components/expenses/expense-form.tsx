@@ -25,6 +25,16 @@ import {
 } from "@/components/ui/select";
 import { expenseSchema, type ExpenseInput } from "@/schemas";
 import { EXPENSE_LABELS } from "@/lib/calculations";
+import type { FormPropertyOption } from "@/components/bookings/booking-form";
+
+function optionLabel(p: FormPropertyOption): string {
+  const parts = [
+    p.roomNumber ? `Apt. ${p.roomNumber}` : null,
+    p.buildingName,
+  ].filter(Boolean);
+  if (parts.length) return parts.join(" · ");
+  return p.name;
+}
 
 type ExpenseFormProps = {
   open: boolean;
@@ -32,9 +42,12 @@ type ExpenseFormProps = {
   title?: string;
   defaultValues?: Partial<ExpenseInput>;
   onSubmit: (data: ExpenseInput) => Promise<void> | void;
+  properties: FormPropertyOption[];
+  defaultPropertyId?: string | null;
 };
 
 const defaults: ExpenseInput = {
+  propertyId: "",
   date: new Date().toISOString().slice(0, 10),
   category: "MISCELLANEOUS",
   description: "",
@@ -52,10 +65,16 @@ export function ExpenseForm({
   title = "Expense",
   defaultValues,
   onSubmit,
+  properties,
+  defaultPropertyId,
 }: ExpenseFormProps) {
   const form = useForm<ExpenseInput>({
     resolver: zodResolver(expenseSchema) as never,
-    defaultValues: { ...defaults, ...defaultValues },
+    defaultValues: {
+      ...defaults,
+      propertyId: defaultPropertyId ?? "",
+      ...defaultValues,
+    },
   });
 
   const {
@@ -69,13 +88,18 @@ export function ExpenseForm({
 
   useEffect(() => {
     if (open) {
-      reset({ ...defaults, ...defaultValues });
+      reset({
+        ...defaults,
+        propertyId: defaultPropertyId ?? "",
+        ...defaultValues,
+      });
     }
-  }, [open, defaultValues, reset]);
+  }, [open, defaultValues, defaultPropertyId, reset]);
 
   const isRecurring = watch("isRecurring");
   const isRefundable = watch("isRefundable");
   const category = watch("category");
+  const propertyId = watch("propertyId");
 
   const submit = handleSubmit(async (data) => {
     await onSubmit(data);
@@ -92,6 +116,30 @@ export function ExpenseForm({
         </DialogHeader>
 
         <form onSubmit={submit} className="space-y-4">
+          <div className="space-y-2">
+            <Label>Property</Label>
+            <Select
+              value={propertyId || undefined}
+              onValueChange={(v) =>
+                setValue("propertyId", v, { shouldValidate: true })
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select property" />
+              </SelectTrigger>
+              <SelectContent>
+                {properties.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {optionLabel(p)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.propertyId && (
+              <p className="text-xs text-destructive">{errors.propertyId.message}</p>
+            )}
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
               <Label htmlFor="date">Date</Label>

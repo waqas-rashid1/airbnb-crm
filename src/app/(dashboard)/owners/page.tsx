@@ -1,11 +1,18 @@
 import { prisma } from "@/lib/db";
-import { getPrimaryProperty } from "@/lib/safe-action";
+import {
+  getSelectedProperty,
+  listProperties,
+} from "@/lib/property-context";
 import { toNumber } from "@/lib/calculations";
 import { OwnersView } from "@/components/owners/owners-view";
 import { PageHeader } from "@/components/shared/page-header";
 
 export default async function OwnersPage() {
-  const property = await getPrimaryProperty();
+  const [property, properties] = await Promise.all([
+    getSelectedProperty(),
+    listProperties(),
+  ]);
+
   if (!property) {
     return <p className="text-muted-foreground">No property configured.</p>;
   }
@@ -48,6 +55,8 @@ export default async function OwnersPage() {
       <OwnersView
         owners={serialized}
         currencySymbol={settings?.currencySymbol || "Rs"}
+        properties={properties}
+        selectedPropertyId={property.id}
       />
     </div>
   );

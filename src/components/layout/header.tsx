@@ -6,6 +6,10 @@ import { ChevronRight } from "lucide-react";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { UserMenu } from "@/components/layout/user-menu";
 import { CommandSearch } from "@/components/layout/command-search";
+import {
+  PropertySwitcher,
+  type PropertySwitcherItem,
+} from "@/components/layout/property-switcher";
 
 const labels: Record<string, string> = {
   dashboard: "Dashboard",
@@ -19,7 +23,17 @@ const labels: Record<string, string> = {
   settings: "Settings",
 };
 
-export function Header({ userName }: { userName?: string | null }) {
+type HeaderProps = {
+  userName?: string | null;
+  properties: PropertySwitcherItem[];
+  selectedPropertyId: string | null;
+};
+
+export function Header({
+  userName,
+  properties,
+  selectedPropertyId,
+}: HeaderProps) {
   const pathname = usePathname();
   const parts = pathname.split("/").filter(Boolean);
 
@@ -31,7 +45,7 @@ export function Header({ userName }: { userName?: string | null }) {
             Home
           </Link>
           {parts.map((part, i) => (
-            <span key={part} className="flex items-center gap-1">
+            <span key={`${part}-${i}`} className="flex items-center gap-1">
               <ChevronRight className="h-3.5 w-3.5" />
               <Link
                 href={`/${parts.slice(0, i + 1).join("/")}`}
@@ -48,6 +62,10 @@ export function Header({ userName }: { userName?: string | null }) {
         </nav>
       </div>
       <div className="flex items-center gap-2">
+        <PropertySwitcher
+          properties={properties}
+          selectedId={selectedPropertyId}
+        />
         <CommandSearch />
         <ThemeToggle />
         <UserMenu name={userName} />

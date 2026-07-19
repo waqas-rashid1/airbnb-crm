@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const bookingSchema = z
   .object({
+    propertyId: z.string().min(1, "Property is required"),
     guestName: z.string().min(1, "Guest name is required"),
     phone: z.string().optional().nullable(),
     platform: z.enum(["AIRBNB", "BOOKING_COM", "DIRECT", "OTHER"]),
@@ -48,6 +49,7 @@ export const expenseCategories = [
 ] as const;
 
 export const expenseSchema = z.object({
+  propertyId: z.string().min(1, "Property is required"),
   date: z.string().min(1),
   category: z.enum(expenseCategories),
   description: z.string().min(1, "Description is required"),
@@ -73,6 +75,7 @@ export const reimbursementSchema = z.object({
 export type ReimbursementInput = z.infer<typeof reimbursementSchema>;
 
 export const ownerSchema = z.object({
+  propertyId: z.string().min(1, "Property is required"),
   name: z.string().min(1, "Name is required"),
   email: z.string().email().optional().nullable().or(z.literal("")),
   phone: z.string().optional().nullable(),
@@ -92,6 +95,7 @@ export const ownerTransactionSchema = z.object({
 export type OwnerTransactionInput = z.infer<typeof ownerTransactionSchema>;
 
 export const assetSchema = z.object({
+  propertyId: z.string().min(1, "Property is required"),
   name: z.string().min(1, "Name is required"),
   purchaseDate: z.string().optional().nullable(),
   cost: z.coerce.number().min(0),

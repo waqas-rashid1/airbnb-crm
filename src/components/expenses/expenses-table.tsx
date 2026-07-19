@@ -39,9 +39,11 @@ import {
   formatCurrency,
   formatDate,
 } from "@/lib/calculations";
+import type { FormPropertyOption } from "@/components/bookings/booking-form";
 
 export type SerializedExpense = {
   id: string;
+  propertyId: string;
   date: string | Date;
   category: string;
   description: string;
@@ -58,6 +60,8 @@ export type SerializedExpense = {
 type ExpensesTableProps = {
   expenses: SerializedExpense[];
   currencySymbol?: string;
+  properties: FormPropertyOption[];
+  selectedPropertyId?: string | null;
 };
 
 function toDateInput(value: string | Date): string {
@@ -68,6 +72,8 @@ function toDateInput(value: string | Date): string {
 export function ExpensesTable({
   expenses,
   currencySymbol = "Rs",
+  properties,
+  selectedPropertyId,
 }: ExpensesTableProps) {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
@@ -217,6 +223,7 @@ export function ExpensesTable({
 
   const formDefaults: Partial<ExpenseInput> | undefined = editing
     ? {
+        propertyId: editing.propertyId,
         date: toDateInput(editing.date),
         category: editing.category as ExpenseInput["category"],
         description: editing.description,
@@ -227,7 +234,10 @@ export function ExpensesTable({
         isRefundable: editing.isRefundable ?? false,
         monthlyNote: editing.monthlyNote ?? "",
       }
-    : { isRefundable: false };
+    : {
+        propertyId: selectedPropertyId ?? "",
+        isRefundable: false,
+      };
 
   async function handleSubmit(data: ExpenseInput) {
     const result = editing
@@ -380,6 +390,8 @@ export function ExpensesTable({
         title={editing ? "Edit expense" : "New expense"}
         defaultValues={formDefaults}
         onSubmit={handleSubmit}
+        properties={properties}
+        defaultPropertyId={selectedPropertyId}
       />
 
       <ConfirmDelete

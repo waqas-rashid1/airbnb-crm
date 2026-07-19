@@ -2,18 +2,19 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
-import { requireAuth, requireProperty, type ActionResult } from "@/lib/safe-action";
+import { requireAuth, type ActionResult } from "@/lib/safe-action";
+import { resolvePropertyId } from "@/lib/property-context";
 import { assetSchema, type AssetInput } from "@/schemas";
 
 export async function createAsset(input: AssetInput): Promise<ActionResult> {
   try {
     await requireAuth();
-    const property = await requireProperty();
     const parsed = assetSchema.parse(input);
+    const propertyId = await resolvePropertyId(parsed.propertyId);
 
     const asset = await prisma.asset.create({
       data: {
-        propertyId: property.id,
+        propertyId,
         name: parsed.name,
         purchaseDate: parsed.purchaseDate ? new Date(parsed.purchaseDate) : null,
         cost: parsed.cost,
@@ -36,9 +37,11 @@ export async function updateAsset(id: string, input: AssetInput): Promise<Action
     await requireAuth();
     const parsed = assetSchema.parse(input);
 
+    const propertyId = await resolvePropertyId(parsed.propertyId);
     const asset = await prisma.asset.update({
       where: { id },
       data: {
+        propertyId,
         name: parsed.name,
         purchaseDate: parsed.purchaseDate ? new Date(parsed.purchaseDate) : null,
         cost: parsed.cost,

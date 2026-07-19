@@ -39,9 +39,18 @@ import {
 } from "@/components/ui/table";
 import { assetSchema, type AssetInput } from "@/schemas";
 import { formatCurrency, formatDate } from "@/lib/calculations";
+import type { FormPropertyOption } from "@/components/bookings/booking-form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export type SerializedAsset = {
   id: string;
+  propertyId: string;
   name: string;
   purchaseDate?: string | Date | null;
   cost: number | string;
@@ -53,9 +62,21 @@ export type SerializedAsset = {
 type AssetsTableProps = {
   assets: SerializedAsset[];
   currencySymbol?: string;
+  properties: FormPropertyOption[];
+  selectedPropertyId?: string | null;
 };
 
+function optionLabel(p: FormPropertyOption): string {
+  const parts = [
+    p.roomNumber ? `Apt. ${p.roomNumber}` : null,
+    p.buildingName,
+  ].filter(Boolean);
+  if (parts.length) return parts.join(" · ");
+  return p.name;
+}
+
 const formDefaults: AssetInput = {
+  propertyId: "",
   name: "",
   purchaseDate: "",
   cost: 0,
@@ -70,7 +91,12 @@ function toDateInput(value?: string | Date | null): string {
   return d.toISOString().slice(0, 10);
 }
 
-export function AssetsTable({ assets, currencySymbol = "Rs" }: AssetsTableProps) {
+export function AssetsTable({
+  assets,
+  currencySymbol = "Rs",
+  properties,
+  selectedPropertyId,
+}: AssetsTableProps) {
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<SerializedAsset | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -78,13 +104,17 @@ export function AssetsTable({ assets, currencySymbol = "Rs" }: AssetsTableProps)
 
   const form = useForm<AssetInput>({
     resolver: zodResolver(assetSchema) as never,
-    defaultValues: formDefaults,
+    defaultValues: {
+      ...formDefaults,
+      propertyId: selectedPropertyId ?? "",
+    },
   });
 
   useEffect(() => {
     if (!formOpen) return;
     if (editing) {
       form.reset({
+        propertyId: editing.propertyId,
         name: editing.name,
         purchaseDate: toDateInput(editing.purchaseDate),
         cost: Number(editing.cost),
@@ -93,9 +123,12 @@ export function AssetsTable({ assets, currencySymbol = "Rs" }: AssetsTableProps)
         notes: editing.notes ?? "",
       });
     } else {
-      form.reset(formDefaults);
+      form.reset({
+        ...formDefaults,
+        propertyId: selectedPropertyId ?? "",
+      });
     }
-  }, [formOpen, editing, form]);
+  }, [formOpen, editing, form, selectedPropertyId]);
 
   const columns = useMemo<ColumnDef<SerializedAsset>[]>(
     () => [
@@ -323,6 +356,31 @@ export function AssetsTable({ assets, currencySymbol = "Rs" }: AssetsTableProps)
             <DialogDescription>Track purchase cost and current value.</DialogDescription>
           </DialogHeader>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Property</Label>
+              <Select
+                value={form.watch("propertyId") || undefined}
+                onValueChange={(v) =>
+                  form.setValue("propertyId", v, { shouldValidate: true })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select property" />
+                </SelectTrigger>
+                <SelectContent>
+                  {properties.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {optionLabel(p)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {form.formState.errors.propertyId && (
+                <p className="text-xs text-destructive">
+                  {form.formState.errors.propertyId.message}
+                </p>
+              )}
+            </div>
             <div className="space-y-2">
               <Label htmlFor="asset-name">Name</Label>
               <Input id="asset-name" {...form.register("name")} />

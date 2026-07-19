@@ -151,7 +151,7 @@ export function PropertyForm({
   }, [property, form]);
 
   async function onSubmit(data: PropertyInput) {
-    const result = await updateProperty(data);
+    const result = await updateProperty(property.id, data);
     if (result.success) {
       toast.success("Property updated");
     } else {
@@ -170,6 +170,7 @@ export function PropertyForm({
     fd.set("file", file);
     fd.set("name", docName || file.name);
     fd.set("type", docType);
+    fd.set("propertyId", property.id);
     const result = await uploadDocument(fd);
     setUploading(false);
     if (result.success) {

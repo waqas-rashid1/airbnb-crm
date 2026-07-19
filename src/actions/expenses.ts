@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
-import { requireAuth, requireProperty, type ActionResult } from "@/lib/safe-action";
+import { requireAuth, type ActionResult } from "@/lib/safe-action";
+import { resolvePropertyId } from "@/lib/property-context";
 import { expenseSchema, type ExpenseInput } from "@/schemas";
 import { toNumber } from "@/lib/calculations";
 import type { ReimbursementStatus } from "@prisma/client";
@@ -16,12 +17,12 @@ function deriveStatus(amount: number, reimbursed: number): ReimbursementStatus {
 export async function createExpense(input: ExpenseInput): Promise<ActionResult> {
   try {
     await requireAuth();
-    const property = await requireProperty();
     const parsed = expenseSchema.parse(input);
+    const propertyId = await resolvePropertyId(parsed.propertyId);
 
     const expense = await prisma.expense.create({
       data: {
-        propertyId: property.id,
+        propertyId,
         date: new Date(parsed.date),
         category: parsed.category,
         description: parsed.description,
@@ -54,10 +55,12 @@ export async function updateExpense(
     const parsed = expenseSchema.parse(input);
     const existing = await prisma.expense.findUniqueOrThrow({ where: { id } });
     const reimbursed = toNumber(existing.reimbursedAmount);
+    const propertyId = await resolvePropertyId(parsed.propertyId);
 
     const expense = await prisma.expense.update({
       where: { id },
       data: {
+        propertyId,
         date: new Date(parsed.date),
         category: parsed.category,
         description: parsed.description,

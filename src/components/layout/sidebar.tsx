@@ -69,7 +69,7 @@ export function Sidebar() {
         })}
       </nav>
       <div className="border-t border-sidebar-border p-4">
-        <p className="text-xs text-muted-foreground">Single property CRM</p>
+        <p className="text-xs text-muted-foreground">Multi-property CRM</p>
       </div>
     </div>
   );

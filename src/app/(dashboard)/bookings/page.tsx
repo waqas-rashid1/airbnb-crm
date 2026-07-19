@@ -1,11 +1,18 @@
 import { prisma } from "@/lib/db";
-import { getPrimaryProperty } from "@/lib/safe-action";
+import {
+  getSelectedProperty,
+  listProperties,
+} from "@/lib/property-context";
 import { toNumber } from "@/lib/calculations";
 import { BookingsPageClient } from "@/components/bookings/bookings-page-client";
 import { PageHeader } from "@/components/shared/page-header";
 
 export default async function BookingsPage() {
-  const property = await getPrimaryProperty();
+  const [property, properties] = await Promise.all([
+    getSelectedProperty(),
+    listProperties(),
+  ]);
+
   if (!property) {
     return <p className="text-muted-foreground">No property configured.</p>;
   }
@@ -20,6 +27,7 @@ export default async function BookingsPage() {
 
   const serialized = bookings.map((b) => ({
     id: b.id,
+    propertyId: b.propertyId,
     bookingCode: b.bookingCode,
     guestName: b.guestName,
     phone: b.phone,
@@ -49,6 +57,8 @@ export default async function BookingsPage() {
       <BookingsPageClient
         bookings={serialized}
         currencySymbol={settings?.currencySymbol || "Rs"}
+        properties={properties}
+        selectedPropertyId={property.id}
       />
     </div>
   );

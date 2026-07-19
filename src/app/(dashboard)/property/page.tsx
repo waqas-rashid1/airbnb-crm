@@ -1,63 +1,59 @@
 import { prisma } from "@/lib/db";
-import { getPrimaryProperty } from "@/lib/safe-action";
 import { toNumber } from "@/lib/calculations";
-import { PropertyForm } from "@/components/property/property-form";
+import { PropertiesView } from "@/components/property/properties-view";
 import { PageHeader } from "@/components/shared/page-header";
 
-export default async function PropertyPage() {
-  const property = await getPrimaryProperty();
-  if (!property) {
-    return <p className="text-muted-foreground">No property configured.</p>;
-  }
+export default async function PropertyListPage() {
+  const [properties, settings, bookingCounts, expenseCounts, ownerCounts] =
+    await Promise.all([
+      prisma.property.findMany({ orderBy: { createdAt: "asc" } }),
+      prisma.settings.findFirst(),
+      prisma.booking.groupBy({
+        by: ["propertyId"],
+        _count: { _all: true },
+      }),
+      prisma.expense.groupBy({
+        by: ["propertyId"],
+        _count: { _all: true },
+      }),
+      prisma.owner.groupBy({
+        by: ["propertyId"],
+        _count: { _all: true },
+      }),
+    ]);
 
-  const [documents, settings] = await Promise.all([
-    prisma.document.findMany({
-      where: { propertyId: property.id },
-      orderBy: { createdAt: "desc" },
-    }),
-    prisma.settings.findFirst(),
-  ]);
+  const bookingMap = new Map(
+    bookingCounts.map((r) => [r.propertyId, r._count._all])
+  );
+  const expenseMap = new Map(
+    expenseCounts.map((r) => [r.propertyId, r._count._all])
+  );
+  const ownerMap = new Map(
+    ownerCounts.map((r) => [r.propertyId, r._count._all])
+  );
 
-  const serialized = {
-    id: property.id,
-    name: property.name,
-    buildingName: property.buildingName,
-    roomNumber: property.roomNumber,
-    floor: property.floor,
-    city: property.city,
-    address: property.address,
-    unitType: property.unitType,
-    monthlyRent: toNumber(property.monthlyRent),
-    securityDeposit: toNumber(property.securityDeposit),
-    dealerCommission: toNumber(property.dealerCommission),
-    stampPaper: toNumber(property.stampPaper),
-    leaseStart: property.leaseStart?.toISOString() ?? null,
-    leaseEnd: property.leaseEnd?.toISOString() ?? null,
-    landlordName: property.landlordName,
-    landlordPhone: property.landlordPhone,
-    landlordEmail: property.landlordEmail,
-    landlordNotes: property.landlordNotes,
-  };
-
-  const docs = documents.map((d) => ({
-    id: d.id,
-    name: d.name,
-    type: d.type,
-    url: d.url,
-    size: d.size,
-    mimeType: d.mimeType,
-    createdAt: d.createdAt.toISOString(),
+  const serialized = properties.map((p) => ({
+    id: p.id,
+    name: p.name,
+    buildingName: p.buildingName,
+    roomNumber: p.roomNumber,
+    floor: p.floor,
+    city: p.city,
+    address: p.address,
+    monthlyRent: toNumber(p.monthlyRent),
+    bookingCount: bookingMap.get(p.id) ?? 0,
+    expenseCount: expenseMap.get(p.id) ?? 0,
+    ownerCount: ownerMap.get(p.id) ?? 0,
   }));
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Property"
-        description="Lease details, landlord info, and documents"
+        title="Properties"
+        description="Manage all properties, leases, and documents"
       />
-      <PropertyForm
-        property={serialized}
-        documents={docs}
+      <PropertiesView
+        properties={serialized}
         currencySymbol={settings?.currencySymbol || "Rs"}
       />
     </div>

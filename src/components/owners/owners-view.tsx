@@ -52,6 +52,7 @@ import {
   formatDate,
   OWNER_TX_LABELS,
 } from "@/lib/calculations";
+import type { FormPropertyOption } from "@/components/bookings/booking-form";
 
 export type SerializedOwnerTransaction = {
   id: string;
@@ -78,9 +79,25 @@ export type SerializedOwner = {
 type OwnersViewProps = {
   owners: SerializedOwner[];
   currencySymbol?: string;
+  properties: FormPropertyOption[];
+  selectedPropertyId?: string | null;
 };
 
-export function OwnersView({ owners, currencySymbol = "Rs" }: OwnersViewProps) {
+function optionLabel(p: FormPropertyOption): string {
+  const parts = [
+    p.roomNumber ? `Apt. ${p.roomNumber}` : null,
+    p.buildingName,
+  ].filter(Boolean);
+  if (parts.length) return parts.join(" · ");
+  return p.name;
+}
+
+export function OwnersView({
+  owners,
+  currencySymbol = "Rs",
+  properties,
+  selectedPropertyId,
+}: OwnersViewProps) {
   const [ownerOpen, setOwnerOpen] = useState(false);
   const [txOpen, setTxOpen] = useState(false);
   const [txOwnerId, setTxOwnerId] = useState<string | null>(null);
@@ -89,7 +106,13 @@ export function OwnersView({ owners, currencySymbol = "Rs" }: OwnersViewProps) {
 
   const ownerForm = useForm<OwnerInput>({
     resolver: zodResolver(ownerSchema),
-    defaultValues: { name: "", email: "", phone: "", notes: "" },
+    defaultValues: {
+      propertyId: selectedPropertyId ?? "",
+      name: "",
+      email: "",
+      phone: "",
+      notes: "",
+    },
   });
 
   const txForm = useForm<OwnerTransactionInput>({
@@ -102,6 +125,18 @@ export function OwnersView({ owners, currencySymbol = "Rs" }: OwnersViewProps) {
       description: "",
     },
   });
+
+  useEffect(() => {
+    if (ownerOpen) {
+      ownerForm.reset({
+        propertyId: selectedPropertyId ?? "",
+        name: "",
+        email: "",
+        phone: "",
+        notes: "",
+      });
+    }
+  }, [ownerOpen, selectedPropertyId, ownerForm]);
 
   useEffect(() => {
     if (txOpen && txOwnerId) {
@@ -120,7 +155,13 @@ export function OwnersView({ owners, currencySymbol = "Rs" }: OwnersViewProps) {
     if (result.success) {
       toast.success("Owner added");
       setOwnerOpen(false);
-      ownerForm.reset();
+      ownerForm.reset({
+        propertyId: selectedPropertyId ?? "",
+        name: "",
+        email: "",
+        phone: "",
+        notes: "",
+      });
     } else {
       toast.error(result.error);
     }
@@ -283,6 +324,31 @@ export function OwnersView({ owners, currencySymbol = "Rs" }: OwnersViewProps) {
             onSubmit={ownerForm.handleSubmit(onCreateOwner)}
             className="space-y-4"
           >
+            <div className="space-y-2">
+              <Label>Property</Label>
+              <Select
+                value={ownerForm.watch("propertyId") || undefined}
+                onValueChange={(v) =>
+                  ownerForm.setValue("propertyId", v, { shouldValidate: true })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select property" />
+                </SelectTrigger>
+                <SelectContent>
+                  {properties.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {optionLabel(p)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {ownerForm.formState.errors.propertyId && (
+                <p className="text-xs text-destructive">
+                  {ownerForm.formState.errors.propertyId.message}
+                </p>
+              )}
+            </div>
             <div className="space-y-2">
               <Label htmlFor="owner-name">Name</Label>
               <Input id="owner-name" {...ownerForm.register("name")} />

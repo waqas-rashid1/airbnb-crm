@@ -40,9 +40,11 @@ import {
   PLATFORM_LABELS,
   STATUS_LABELS,
 } from "@/lib/calculations";
+import type { FormPropertyOption } from "@/components/bookings/booking-form";
 
 export type SerializedBooking = {
   id: string;
+  propertyId: string;
   bookingCode: string;
   guestName: string;
   phone?: string | null;
@@ -66,6 +68,8 @@ export type SerializedBooking = {
 type BookingsTableProps = {
   bookings: SerializedBooking[];
   currencySymbol?: string;
+  properties: FormPropertyOption[];
+  selectedPropertyId?: string | null;
 };
 
 function toDateInput(value: string | Date): string {
@@ -93,6 +97,8 @@ function statusVariant(
 export function BookingsTable({
   bookings,
   currencySymbol = "Rs",
+  properties,
+  selectedPropertyId,
 }: BookingsTableProps) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -218,6 +224,7 @@ export function BookingsTable({
 
   const formDefaults: Partial<BookingInput> | undefined = editing
     ? {
+        propertyId: editing.propertyId,
         guestName: editing.guestName,
         phone: editing.phone ?? "",
         platform: editing.platform as BookingInput["platform"],
@@ -234,7 +241,7 @@ export function BookingsTable({
         status: editing.status as BookingInput["status"],
         notes: editing.notes ?? "",
       }
-    : undefined;
+    : { propertyId: selectedPropertyId ?? "" };
 
   async function handleSubmit(data: BookingInput) {
     const result = editing
@@ -401,6 +408,8 @@ export function BookingsTable({
         defaultValues={formDefaults}
         onSubmit={handleSubmit}
         currencySymbol={currencySymbol}
+        properties={properties}
+        defaultPropertyId={selectedPropertyId}
       />
 
       <ConfirmDelete
