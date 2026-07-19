@@ -26,35 +26,26 @@ export function MetricCard({
   const positive = trend ? trend.value >= 0 : null;
 
   return (
-    <Card
-      className={cn(
-        "metric-card overflow-hidden border-border/80 bg-card/90 shadow-[0_10px_30px_-24px_hsl(var(--foreground)/0.35)]",
-        className
-      )}
-    >
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+    <Card className={cn("border bg-card shadow-none", className)}>
+      <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+        <CardTitle className="text-[12.5px] font-medium uppercase tracking-[0.04em] text-muted-foreground">
           {title}
         </CardTitle>
-        {Icon ? (
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[hsl(var(--brand-soft))] text-[hsl(var(--brand))]">
-            <Icon className="h-4 w-4" />
-          </div>
-        ) : null}
+        {Icon ? <Icon className="h-4 w-4 text-muted-foreground/70" /> : null}
       </CardHeader>
       <CardContent>
-        <div className="font-display text-2xl font-semibold tracking-tight">
+        <div className="tabular text-[1.55rem] font-semibold leading-none tracking-tight">
           {value}
         </div>
         {(subtitle || trend) && (
-          <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-[12.5px] text-muted-foreground">
             {trend ? (
               <span
                 className={cn(
                   "inline-flex items-center gap-0.5 font-medium",
                   positive
-                    ? "text-emerald-600 dark:text-emerald-400"
-                    : "text-red-600 dark:text-red-400"
+                    ? "text-emerald-700 dark:text-emerald-400"
+                    : "text-red-700 dark:text-red-400"
                 )}
               >
                 {positive ? (

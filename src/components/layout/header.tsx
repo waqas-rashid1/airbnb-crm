@@ -38,21 +38,21 @@ export function Header({
   const parts = pathname.split("/").filter(Boolean);
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-border/70 bg-background/70 px-4 backdrop-blur-xl lg:px-6">
-      <div className="flex items-center gap-2 pl-12 lg:pl-0">
-        <nav className="flex items-center gap-1 text-sm text-muted-foreground">
-          <Link href="/dashboard" className="hover:text-[hsl(var(--brand))]">
+    <header className="sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b bg-background/90 px-4 backdrop-blur-sm lg:px-6">
+      <div className="flex min-w-0 items-center gap-2 pl-12 lg:pl-0">
+        <nav className="flex items-center gap-1 truncate text-[13px] text-muted-foreground">
+          <Link href="/dashboard" className="hover:text-foreground">
             Home
           </Link>
           {parts.map((part, i) => (
             <span key={`${part}-${i}`} className="flex items-center gap-1">
-              <ChevronRight className="h-3.5 w-3.5" />
+              <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-60" />
               <Link
                 href={`/${parts.slice(0, i + 1).join("/")}`}
                 className={
                   i === parts.length - 1
-                    ? "font-medium text-foreground"
-                    : "hover:text-[hsl(var(--brand))]"
+                    ? "truncate font-medium text-foreground"
+                    : "truncate hover:text-foreground"
                 }
               >
                 {labels[part] || part}
@@ -61,7 +61,7 @@ export function Header({
           ))}
         </nav>
       </div>
-      <div className="flex items-center gap-2">
+      <div className="flex shrink-0 items-center gap-2">
         <PropertySwitcher
           properties={properties}
           selectedId={selectedPropertyId}

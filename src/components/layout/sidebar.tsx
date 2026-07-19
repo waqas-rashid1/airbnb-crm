@@ -38,10 +38,10 @@ export function Sidebar() {
 
   const Nav = (
     <div className="flex h-full flex-col">
-      <div className="flex h-16 items-center border-b border-sidebar-border px-4">
+      <div className="flex h-14 items-center border-b border-sidebar-border px-4">
         <BrandLogo size="sm" />
       </div>
-      <nav className="flex-1 space-y-1 p-3">
+      <nav className="flex-1 space-y-0.5 p-2.5">
         {navItems.map((item) => {
           const active =
             pathname === item.href || pathname.startsWith(item.href + "/");
@@ -51,21 +51,29 @@ export function Sidebar() {
               href={item.href}
               onClick={() => setOpen(false)}
               className={cn(
-                "nav-link flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium",
+                "relative flex items-center gap-2.5 rounded-md px-2.5 py-2 text-[13.5px] font-medium",
                 active
-                  ? "bg-[hsl(var(--brand))] text-white shadow-[0_10px_24px_-14px_hsl(var(--brand))]"
-                  : "text-sidebar-foreground hover:bg-[hsl(var(--brand-soft))] hover:text-[hsl(var(--brand))]"
+                  ? "bg-white text-foreground shadow-sm ring-1 ring-border dark:bg-card"
+                  : "text-sidebar-foreground hover:bg-white/70 hover:text-foreground dark:hover:bg-card/60"
               )}
             >
-              <item.icon className="h-4 w-4 shrink-0" />
+              {active ? (
+                <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r bg-[hsl(var(--brand))]" />
+              ) : null}
+              <item.icon
+                className={cn(
+                  "h-4 w-4 shrink-0",
+                  active ? "text-[hsl(var(--brand))]" : "opacity-70"
+                )}
+              />
               {item.label}
             </Link>
           );
         })}
       </nav>
-      <div className="border-t border-sidebar-border p-4">
-        <p className="text-xs leading-relaxed text-muted-foreground">
-          Short-stay operations, cashflow & owners — in one place.
+      <div className="border-t border-sidebar-border px-4 py-3">
+        <p className="text-[12px] leading-snug text-muted-foreground">
+          Apt · bookings · expenses · owners
         </p>
       </div>
     </div>
@@ -76,7 +84,7 @@ export function Sidebar() {
       <Button
         variant="outline"
         size="icon"
-        className="fixed left-4 top-3 z-50 rounded-xl lg:hidden"
+        className="fixed left-4 top-3 z-50 lg:hidden"
         onClick={() => setOpen(!open)}
       >
         {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
@@ -84,14 +92,14 @@ export function Sidebar() {
 
       {open && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
           onClick={() => setOpen(false)}
         />
       )}
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 border-r border-sidebar-border bg-sidebar/95 backdrop-blur-xl transition-transform lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-40 w-56 border-r border-sidebar-border bg-sidebar transition-transform lg:translate-x-0",
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >

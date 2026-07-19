@@ -23,15 +23,17 @@ export default async function DashboardLayout({
   ]);
 
   return (
-    <div className="app-shell">
+    <div className="min-h-screen bg-background">
       <Sidebar />
-      <div className="lg:pl-64">
+      <div className="lg:pl-56">
         <Header
           userName={session.user.name}
           properties={properties}
           selectedPropertyId={selected?.id ?? null}
         />
-        <main className="p-4 lg:p-8">{children}</main>
+        <main className="mx-auto w-full max-w-[1400px] p-4 lg:p-6">
+          {children}
+        </main>
       </div>
     </div>
   );
