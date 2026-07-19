@@ -12,22 +12,18 @@ export default function LoginPage() {
 
   return (
     <div className="grid min-h-screen lg:grid-cols-[1.05fr_0.95fr]">
-      <div className="relative hidden flex-col justify-between bg-[#111827] px-12 py-12 text-white lg:flex">
-        <BrandLogo
-          size="md"
-          className="[&_span]:text-white"
-          markClassName="bg-[hsl(var(--brand))]"
-        />
+      <div className="relative hidden flex-col justify-between bg-[#0b1f1e] px-12 py-12 text-white lg:flex">
+        <BrandLogo size="md" inverted />
         <div className="max-w-md space-y-4">
           <h1 className="text-[2.35rem] font-semibold leading-[1.15] tracking-tight">
-            Run the apartment like a business.
+            Host with clarity. Run with calm.
           </h1>
           <p className="text-[15px] leading-relaxed text-white/70">
-            Bookings, expenses, owner balances, and reimbursements — tracked by
-            unit, without spreadsheet chaos.
+            Hostora keeps bookings, expenses, owner capital, and reimbursements
+            tidy — so your apartment business can grow without the mess.
           </p>
         </div>
-        <p className="text-xs text-white/45">StayCRM · short-term rental ops</p>
+        <p className="text-xs text-white/45">Hostora · property CRM</p>
       </div>
 
       <div className="flex items-center justify-center px-6 py-12">
@@ -38,7 +34,7 @@ export default function LoginPage() {
           <div className="mb-8 space-y-2">
             <h2 className="text-2xl font-semibold tracking-tight">Sign in</h2>
             <p className="text-sm text-muted-foreground">
-              Use your admin email and password.
+              Use your Hostora admin email and password.
             </p>
           </div>
           <form action={formAction} className="space-y-4">

@@ -12,6 +12,7 @@ import {
   Building2,
   FileBarChart,
   Settings,
+  ListTodo,
   Menu,
   X,
 } from "lucide-react";
@@ -28,6 +29,7 @@ const navItems = [
   { href: "/owners", label: "Owners", icon: Users },
   { href: "/assets", label: "Assets", icon: Package },
   { href: "/property", label: "Property", icon: Building2 },
+  { href: "/notes", label: "Notes & Tasks", icon: ListTodo },
   { href: "/reports", label: "Reports", icon: FileBarChart },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
@@ -58,7 +60,7 @@ export function Sidebar() {
               )}
             >
               {active ? (
-                <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r bg-[hsl(var(--brand))]" />
+                <span className="absolute bottom-1.5 left-0 top-1.5 w-[2px] rounded-r bg-[hsl(var(--brand))]" />
               ) : null}
               <item.icon
                 className={cn(
@@ -73,7 +75,7 @@ export function Sidebar() {
       </nav>
       <div className="border-t border-sidebar-border px-4 py-3">
         <p className="text-[12px] leading-snug text-muted-foreground">
-          Apt · bookings · expenses · owners
+          Hostora · multi-unit ops
         </p>
       </div>
     </div>

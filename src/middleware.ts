@@ -12,6 +12,7 @@ export const config = {
     "/owners/:path*",
     "/assets/:path*",
     "/property/:path*",
+    "/notes/:path*",
     "/reports/:path*",
     "/settings/:path*",
     "/login",

@@ -19,6 +19,7 @@ const labels: Record<string, string> = {
   owners: "Owners",
   assets: "Assets",
   property: "Property",
+  notes: "Notes & Tasks",
   reports: "Reports",
   settings: "Settings",
 };

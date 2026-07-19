@@ -17,8 +17,8 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "StayCRM — Property Management",
-  description: "Property management CRM for short-term rentals",
+  title: "Hostora — Property CRM",
+  description: "Property CRM for short-term rentals, expenses, and owners",
   icons: {
     icon: "/brand-mark.svg",
   },

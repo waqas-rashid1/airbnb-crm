@@ -141,3 +141,24 @@ export const loginSchema = z.object({
   email: z.string().email("Invalid email"),
   password: z.string().min(1, "Password is required"),
 });
+
+export const taskSchema = z.object({
+  propertyId: z.string().min(1, "Property is required"),
+  title: z.string().min(1, "Title is required").max(200),
+  description: z.string().optional().nullable(),
+  status: z.enum(["TODO", "IN_PROGRESS", "DONE"]).default("TODO"),
+  priority: z.enum(["LOW", "MEDIUM", "HIGH"]).default("MEDIUM"),
+  dueDate: z.string().optional().nullable(),
+});
+
+export type TaskInput = z.infer<typeof taskSchema>;
+
+export const noteSchema = z.object({
+  propertyId: z.string().min(1, "Property is required"),
+  title: z.string().min(1, "Title is required").max(200),
+  body: z.string().min(1, "Note content is required"),
+  pinned: z.boolean().default(false),
+  color: z.enum(["default", "teal", "amber", "rose", "sky"]).default("default"),
+});
+
+export type NoteInput = z.infer<typeof noteSchema>;
