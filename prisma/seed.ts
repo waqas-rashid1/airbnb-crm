@@ -5,6 +5,7 @@ import {
   BookingStatus,
   ExpenseCategory,
   OwnerTransactionType,
+  ReimbursementStatus,
 } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -12,6 +13,7 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("🌱 Seeding database...");
 
+  await prisma.reimbursement.deleteMany();
   await prisma.ownerTransaction.deleteMany();
   await prisma.owner.deleteMany();
   await prisma.booking.deleteMany();
@@ -44,17 +46,22 @@ async function main() {
   const property = await prisma.property.create({
     data: {
       name: "Downtown Airbnb Suite",
-      address: "123 Main Boulevard, Lahore, Pakistan",
+      buildingName: null,
+      roomNumber: null,
+      floor: null,
+      city: "Lahore",
+      address: "Lahore, Pakistan",
+      unitType: "Apartment",
       monthlyRent: 190000,
       securityDeposit: 190000,
       dealerCommission: 30000,
       stampPaper: 2000,
-      leaseStart: new Date("2026-01-01"),
-      leaseEnd: new Date("2027-01-01"),
-      landlordName: "Mr. Ahmed Khan",
-      landlordPhone: "+92 300 1234567",
-      landlordEmail: "landlord@example.com",
-      landlordNotes: "Primary contact for lease matters",
+      leaseStart: new Date("2026-07-18"),
+      leaseEnd: null,
+      landlordName: null,
+      landlordPhone: null,
+      landlordEmail: null,
+      landlordNotes: null,
     },
   });
   console.log(`✓ Property: ${property.name}`);
@@ -67,6 +74,7 @@ async function main() {
       defaultCheckOutTime: "11:00",
       expenseCategories: [
         "RENT",
+        "SECURITY_DEPOSIT",
         "ELECTRICITY",
         "GAS",
         "WATER",
@@ -77,6 +85,7 @@ async function main() {
         "FURNITURE",
         "APPLIANCES",
         "LEGAL",
+        "CONTRACT",
         "COMMISSION",
         "SUPPLIES",
         "SALARY",
@@ -98,14 +107,13 @@ async function main() {
       notes: "Minor investor",
     },
   });
-
   await prisma.ownerTransaction.create({
     data: {
       ownerId: waqas.id,
       type: OwnerTransactionType.INVESTMENT,
       amount: 2000,
-      date: new Date("2026-01-01"),
-      description: "Initial investment",
+      date: new Date("2026-07-18"),
+      description: "Initial investment (contract fee covered)",
       balanceAfter: 2000,
     },
   });
@@ -119,25 +127,25 @@ async function main() {
       notes: "Primary investor",
     },
   });
-
   await prisma.ownerTransaction.create({
     data: {
       ownerId: naseeb.id,
       type: OwnerTransactionType.INVESTMENT,
       amount: 410000,
-      date: new Date("2026-01-01"),
-      description: "Initial investment",
+      date: new Date("2026-07-01"),
+      description: "Initial investment (rent + security + commission)",
       balanceAfter: 410000,
     },
   });
   console.log("✓ Owners: Waqas (2,000), Naseeb (410,000)");
 
+  // Only real booking
   await prisma.booking.create({
     data: {
       bookingCode: "BK-2026-0001",
       propertyId: property.id,
-      guestName: "Ali Hassan",
-      phone: "+92 321 9876543",
+      guestName: "Guest",
+      phone: null,
       platform: BookingPlatform.AIRBNB,
       checkInDate: new Date("2026-07-18T15:00:00"),
       checkInTime: "15:00",
@@ -151,253 +159,67 @@ async function main() {
       discount: 0,
       extraCharges: 0,
       netRevenue: 12000,
-      status: BookingStatus.UPCOMING,
-      notes: "First booking — seed data",
+      status: BookingStatus.COMPLETED,
+      notes: "Sat 18 Jul → Sun 19 Jul",
     },
   });
-  console.log("✓ Booking: 18 Jul 2026, Revenue 12,000");
+  console.log("✓ Booking: 18–19 Jul 2026, Revenue 12,000");
 
-  // Startup expenses
-  const startupExpenses = [
-    {
-      date: new Date("2026-01-01"),
-      category: ExpenseCategory.RENT,
-      description: "January rent",
-      amount: 190000,
-      paidBy: "Naseeb",
-    },
-    {
-      date: new Date("2026-01-01"),
-      category: ExpenseCategory.COMMISSION,
-      description: "Dealer commission",
-      amount: 30000,
-      paidBy: "Naseeb",
-    },
-    {
-      date: new Date("2026-01-01"),
-      category: ExpenseCategory.LEGAL,
-      description: "Stamp paper",
-      amount: 2000,
-      paidBy: "Waqas",
-    },
-    {
-      date: new Date("2026-02-01"),
-      category: ExpenseCategory.RENT,
-      description: "February rent",
-      amount: 190000,
-      paidBy: "Naseeb",
-      isRecurring: true,
-    },
-    {
-      date: new Date("2026-03-01"),
-      category: ExpenseCategory.RENT,
-      description: "March rent",
-      amount: 190000,
-      paidBy: "Naseeb",
-      isRecurring: true,
-    },
-    {
-      date: new Date("2026-03-15"),
-      category: ExpenseCategory.ELECTRICITY,
-      description: "Electricity bill March",
-      amount: 8500,
-      paidBy: "Naseeb",
-    },
-    {
-      date: new Date("2026-03-20"),
-      category: ExpenseCategory.INTERNET,
-      description: "Internet installation + first month",
-      amount: 5500,
-      paidBy: "Naseeb",
-    },
-    {
-      date: new Date("2026-04-01"),
-      category: ExpenseCategory.RENT,
-      description: "April rent",
-      amount: 190000,
-      paidBy: "Naseeb",
-      isRecurring: true,
-    },
-    {
-      date: new Date("2026-05-01"),
-      category: ExpenseCategory.RENT,
-      description: "May rent",
-      amount: 190000,
-      paidBy: "Naseeb",
-      isRecurring: true,
-    },
-    {
-      date: new Date("2026-06-01"),
-      category: ExpenseCategory.RENT,
-      description: "June rent",
-      amount: 190000,
-      paidBy: "Naseeb",
-      isRecurring: true,
-    },
-    {
-      date: new Date("2026-06-10"),
-      category: ExpenseCategory.CLEANING,
-      description: "Deep cleaning before listing",
-      amount: 4000,
-      paidBy: "Naseeb",
-    },
-    {
-      date: new Date("2026-07-01"),
-      category: ExpenseCategory.RENT,
-      description: "July rent",
-      amount: 190000,
-      paidBy: "Naseeb",
-      isRecurring: true,
-    },
-  ];
-
-  for (const exp of startupExpenses) {
-    await prisma.expense.create({
-      data: {
+  // Real expenses only
+  await prisma.expense.createMany({
+    data: [
+      {
         propertyId: property.id,
-        ...exp,
-        isRecurring: exp.isRecurring ?? false,
+        date: new Date("2026-07-01"),
+        category: ExpenseCategory.RENT,
+        description: "Monthly rent",
+        paidBy: "Naseeb",
+        amount: 190000,
+        isRecurring: true,
+        isRefundable: false,
+        reimbursementStatus: ReimbursementStatus.PENDING,
+        reimbursedAmount: 0,
       },
-    });
-  }
-  console.log(`✓ Expenses: ${startupExpenses.length} records`);
-
-  // Assets
-  const assets = [
-    {
-      name: "Security Deposit",
-      cost: 190000,
-      currentValue: 190000,
-      isRefundable: true,
-      purchaseDate: new Date("2026-01-01"),
-      notes: "Refundable security deposit with landlord",
-    },
-    {
-      name: "AC Unit",
-      cost: 85000,
-      currentValue: 75000,
-      isRefundable: false,
-      purchaseDate: new Date("2026-01-15"),
-    },
-    {
-      name: "Smart TV 55\"",
-      cost: 65000,
-      currentValue: 55000,
-      isRefundable: false,
-      purchaseDate: new Date("2026-01-20"),
-    },
-    {
-      name: "King Bed Set",
-      cost: 45000,
-      currentValue: 40000,
-      isRefundable: false,
-      purchaseDate: new Date("2026-01-10"),
-    },
-    {
-      name: "Dining Table Set",
-      cost: 25000,
-      currentValue: 22000,
-      isRefundable: false,
-      purchaseDate: new Date("2026-01-12"),
-    },
-    {
-      name: "Refrigerator",
-      cost: 55000,
-      currentValue: 48000,
-      isRefundable: false,
-      purchaseDate: new Date("2026-01-18"),
-    },
-    {
-      name: "Washing Machine",
-      cost: 40000,
-      currentValue: 35000,
-      isRefundable: false,
-      purchaseDate: new Date("2026-02-01"),
-    },
-  ];
-
-  for (const asset of assets) {
-    await prisma.asset.create({
-      data: { propertyId: property.id, ...asset },
-    });
-  }
-  console.log(`✓ Assets: ${assets.length} items`);
-
-  // Additional sample bookings for charts
-  const sampleBookings = [
-    {
-      code: "BK-2026-0002",
-      guest: "Sara Ahmed",
-      checkIn: "2026-06-05",
-      checkOut: "2026-06-08",
-      nights: 3,
-      revenue: 36000,
-      status: BookingStatus.COMPLETED,
-    },
-    {
-      code: "BK-2026-0003",
-      guest: "John Smith",
-      checkIn: "2026-06-15",
-      checkOut: "2026-06-18",
-      nights: 3,
-      revenue: 40000,
-      status: BookingStatus.COMPLETED,
-    },
-    {
-      code: "BK-2026-0004",
-      guest: "Fatima Noor",
-      checkIn: "2026-07-01",
-      checkOut: "2026-07-05",
-      nights: 4,
-      revenue: 48000,
-      status: BookingStatus.COMPLETED,
-    },
-    {
-      code: "BK-2026-0005",
-      guest: "Omar Malik",
-      checkIn: "2026-07-10",
-      checkOut: "2026-07-12",
-      nights: 2,
-      revenue: 24000,
-      status: BookingStatus.COMPLETED,
-    },
-    {
-      code: "BK-2026-0006",
-      guest: "Emma Wilson",
-      checkIn: "2026-07-25",
-      checkOut: "2026-07-28",
-      nights: 3,
-      revenue: 38000,
-      status: BookingStatus.UPCOMING,
-    },
-  ];
-
-  for (const b of sampleBookings) {
-    const platformFee = Math.round(Number(b.revenue) * 0.03);
-    await prisma.booking.create({
-      data: {
-        bookingCode: b.code,
+      {
         propertyId: property.id,
-        guestName: b.guest,
-        phone: "+92 300 0000000",
-        platform: BookingPlatform.AIRBNB,
-        checkInDate: new Date(`${b.checkIn}T15:00:00`),
-        checkInTime: "15:00",
-        checkOutDate: new Date(`${b.checkOut}T11:00:00`),
-        checkOutTime: "11:00",
-        nights: b.nights,
-        guestsCount: 2,
-        revenue: b.revenue,
-        cleaningFee: 2000,
-        platformFee,
-        discount: 0,
-        extraCharges: 0,
-        netRevenue: b.revenue + 2000 - platformFee,
-        status: b.status,
+        date: new Date("2026-07-01"),
+        category: ExpenseCategory.SECURITY_DEPOSIT,
+        description: "Security deposit (refundable)",
+        paidBy: "Naseeb",
+        amount: 190000,
+        isRecurring: false,
+        isRefundable: true,
+        reimbursementStatus: ReimbursementStatus.PENDING,
+        reimbursedAmount: 0,
       },
-    });
-  }
-  console.log(`✓ Additional bookings: ${sampleBookings.length}`);
+      {
+        propertyId: property.id,
+        date: new Date("2026-07-01"),
+        category: ExpenseCategory.COMMISSION,
+        description: "Commission to Rizwan",
+        paidBy: "Naseeb",
+        amount: 30000,
+        isRecurring: false,
+        isRefundable: false,
+        reimbursementStatus: ReimbursementStatus.PENDING,
+        reimbursedAmount: 0,
+      },
+      {
+        propertyId: property.id,
+        date: new Date("2026-07-18"),
+        category: ExpenseCategory.CONTRACT,
+        description: "Contract fee for stamp #625",
+        paidBy: "Waqas",
+        amount: 2000,
+        isRecurring: false,
+        isRefundable: false,
+        reimbursementStatus: ReimbursementStatus.PENDING,
+        reimbursedAmount: 0,
+      },
+    ],
+  });
+  console.log("✓ Expenses: rent 190k, security 190k, commission 30k (Naseeb); contract 2k (Waqas)");
+  console.log("✓ Assets: none (page kept empty)");
 
   console.log("\n✅ Seed complete!");
 }

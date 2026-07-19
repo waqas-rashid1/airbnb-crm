@@ -42,6 +42,7 @@ const defaults: ExpenseInput = {
   amount: 0,
   receiptUrl: "",
   isRecurring: false,
+  isRefundable: false,
   monthlyNote: "",
 };
 
@@ -73,6 +74,7 @@ export function ExpenseForm({
   }, [open, defaultValues, reset]);
 
   const isRecurring = watch("isRecurring");
+  const isRefundable = watch("isRefundable");
   const category = watch("category");
 
   const submit = handleSubmit(async (data) => {
@@ -155,17 +157,31 @@ export function ExpenseForm({
             />
           </div>
 
-          <div className="flex items-center gap-2">
-            <Checkbox
-              id="isRecurring"
-              checked={isRecurring}
-              onCheckedChange={(checked) =>
-                setValue("isRecurring", checked === true, { shouldValidate: true })
-              }
-            />
-            <Label htmlFor="isRecurring" className="font-normal">
-              Recurring monthly expense
-            </Label>
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="isRecurring"
+                checked={isRecurring}
+                onCheckedChange={(checked) =>
+                  setValue("isRecurring", checked === true, { shouldValidate: true })
+                }
+              />
+              <Label htmlFor="isRecurring" className="font-normal">
+                Recurring monthly expense
+              </Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Checkbox
+                id="isRefundable"
+                checked={isRefundable}
+                onCheckedChange={(checked) =>
+                  setValue("isRefundable", checked === true, { shouldValidate: true })
+                }
+              />
+              <Label htmlFor="isRefundable" className="font-normal">
+                Refundable (security deposit, contract, etc.)
+              </Label>
+            </div>
           </div>
 
           {isRecurring ? (

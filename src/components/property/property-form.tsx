@@ -48,7 +48,12 @@ export type SerializedDocument = {
 export type SerializedProperty = {
   id: string;
   name: string;
+  buildingName?: string | null;
+  roomNumber?: string | null;
+  floor?: string | null;
+  city?: string | null;
   address: string;
+  unitType?: string | null;
   monthlyRent: number | string;
   securityDeposit: number | string;
   dealerCommission: number | string;
@@ -104,7 +109,12 @@ export function PropertyForm({
     resolver: zodResolver(propertySchema) as never,
     defaultValues: {
       name: property.name,
+      buildingName: property.buildingName ?? "",
+      roomNumber: property.roomNumber ?? "",
+      floor: property.floor ?? "",
+      city: property.city ?? "",
       address: property.address,
+      unitType: property.unitType ?? "",
       monthlyRent: Number(property.monthlyRent),
       securityDeposit: Number(property.securityDeposit),
       dealerCommission: Number(property.dealerCommission),
@@ -121,7 +131,12 @@ export function PropertyForm({
   useEffect(() => {
     form.reset({
       name: property.name,
+      buildingName: property.buildingName ?? "",
+      roomNumber: property.roomNumber ?? "",
+      floor: property.floor ?? "",
+      city: property.city ?? "",
       address: property.address,
+      unitType: property.unitType ?? "",
       monthlyRent: Number(property.monthlyRent),
       securityDeposit: Number(property.securityDeposit),
       dealerCommission: Number(property.dealerCommission),
@@ -197,6 +212,30 @@ export function PropertyForm({
                     {form.formState.errors.name.message}
                   </p>
                 )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="unitType">Unit type</Label>
+                <Input
+                  id="unitType"
+                  placeholder="Studio, 1BR, apartment…"
+                  {...form.register("unitType")}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="buildingName">Building</Label>
+                <Input id="buildingName" {...form.register("buildingName")} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="city">City</Label>
+                <Input id="city" {...form.register("city")} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="roomNumber">Room / unit #</Label>
+                <Input id="roomNumber" {...form.register("roomNumber")} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="floor">Floor</Label>
+                <Input id="floor" {...form.register("floor")} />
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="address">Address</Label>

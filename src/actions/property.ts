@@ -16,7 +16,12 @@ export async function updateProperty(input: PropertyInput): Promise<ActionResult
       where: { id: property.id },
       data: {
         name: parsed.name,
+        buildingName: parsed.buildingName || null,
+        roomNumber: parsed.roomNumber || null,
+        floor: parsed.floor || null,
+        city: parsed.city || null,
         address: parsed.address,
+        unitType: parsed.unitType || null,
         monthlyRent: parsed.monthlyRent,
         securityDeposit: parsed.securityDeposit,
         dealerCommission: parsed.dealerCommission,

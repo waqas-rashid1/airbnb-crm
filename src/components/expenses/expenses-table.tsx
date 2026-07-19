@@ -33,7 +33,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { ExpenseInput } from "@/schemas";
-import { EXPENSE_LABELS, formatCurrency, formatDate } from "@/lib/calculations";
+import {
+  EXPENSE_LABELS,
+  REIMBURSEMENT_STATUS_LABELS,
+  formatCurrency,
+  formatDate,
+} from "@/lib/calculations";
 
 export type SerializedExpense = {
   id: string;
@@ -44,6 +49,9 @@ export type SerializedExpense = {
   amount: number | string;
   receiptUrl?: string | null;
   isRecurring: boolean;
+  isRefundable?: boolean;
+  reimbursementStatus?: string;
+  reimbursedAmount?: number | string;
   monthlyNote?: string | null;
 };
 
@@ -123,10 +131,33 @@ export function ExpensesTable({
         ),
       },
       {
+        id: "reimbursement",
+        header: "Reimburse",
+        cell: ({ row }) => {
+          const status = row.original.reimbursementStatus ?? "NOT_NEEDED";
+          if (status === "NOT_NEEDED") {
+            return <span className="text-xs text-muted-foreground">—</span>;
+          }
+          return (
+            <Badge
+              variant={status === "REIMBURSED" ? "secondary" : "outline"}
+              className="text-[10px]"
+            >
+              {REIMBURSEMENT_STATUS_LABELS[status] ?? status}
+            </Badge>
+          );
+        },
+      },
+      {
         id: "meta",
         header: "",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
+            {row.original.isRefundable ? (
+              <Badge variant="outline" className="text-[10px]">
+                Refundable
+              </Badge>
+            ) : null}
             {row.original.isRecurring ? (
               <Badge variant="outline" className="text-[10px]">
                 Recurring
@@ -193,9 +224,10 @@ export function ExpensesTable({
         amount: Number(editing.amount),
         receiptUrl: editing.receiptUrl ?? "",
         isRecurring: editing.isRecurring,
+        isRefundable: editing.isRefundable ?? false,
         monthlyNote: editing.monthlyNote ?? "",
       }
-    : undefined;
+    : { isRefundable: false };
 
   async function handleSubmit(data: ExpenseInput) {
     const result = editing

@@ -21,7 +21,12 @@ export default async function PropertyPage() {
   const serialized = {
     id: property.id,
     name: property.name,
+    buildingName: property.buildingName,
+    roomNumber: property.roomNumber,
+    floor: property.floor,
+    city: property.city,
     address: property.address,
+    unitType: property.unitType,
     monthlyRent: toNumber(property.monthlyRent),
     securityDeposit: toNumber(property.securityDeposit),
     dealerCommission: toNumber(property.dealerCommission),

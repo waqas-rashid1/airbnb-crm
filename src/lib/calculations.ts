@@ -122,6 +122,7 @@ export const STATUS_LABELS: Record<string, string> = {
 
 export const EXPENSE_LABELS: Record<string, string> = {
   RENT: "Rent",
+  SECURITY_DEPOSIT: "Security Deposit",
   ELECTRICITY: "Electricity",
   GAS: "Gas",
   WATER: "Water",
@@ -132,12 +133,20 @@ export const EXPENSE_LABELS: Record<string, string> = {
   FURNITURE: "Furniture",
   APPLIANCES: "Appliances",
   LEGAL: "Legal",
+  CONTRACT: "Contract",
   COMMISSION: "Commission",
   SUPPLIES: "Supplies",
   SALARY: "Salary",
   MARKETING: "Marketing",
   TAXES: "Taxes",
   MISCELLANEOUS: "Miscellaneous",
+};
+
+export const REIMBURSEMENT_STATUS_LABELS: Record<string, string> = {
+  PENDING: "Pending",
+  PARTIAL: "Partial",
+  REIMBURSED: "Reimbursed",
+  NOT_NEEDED: "Not needed",
 };
 
 export const OWNER_TX_LABELS: Record<string, string> = {

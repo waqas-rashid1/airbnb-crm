@@ -4,6 +4,14 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import { requireAuth, requireProperty, type ActionResult } from "@/lib/safe-action";
 import { expenseSchema, type ExpenseInput } from "@/schemas";
+import { toNumber } from "@/lib/calculations";
+import type { ReimbursementStatus } from "@prisma/client";
+
+function deriveStatus(amount: number, reimbursed: number): ReimbursementStatus {
+  if (reimbursed <= 0) return "PENDING";
+  if (reimbursed + 0.001 >= amount) return "REIMBURSED";
+  return "PARTIAL";
+}
 
 export async function createExpense(input: ExpenseInput): Promise<ActionResult> {
   try {
@@ -21,11 +29,15 @@ export async function createExpense(input: ExpenseInput): Promise<ActionResult> 
         amount: parsed.amount,
         receiptUrl: parsed.receiptUrl || null,
         isRecurring: parsed.isRecurring,
+        isRefundable: parsed.isRefundable,
         monthlyNote: parsed.monthlyNote || null,
+        reimbursementStatus: "PENDING",
+        reimbursedAmount: 0,
       },
     });
 
     revalidatePath("/expenses");
+    revalidatePath("/reimburse");
     revalidatePath("/dashboard");
     return { success: true, data: expense };
   } catch (e) {
@@ -40,6 +52,8 @@ export async function updateExpense(
   try {
     await requireAuth();
     const parsed = expenseSchema.parse(input);
+    const existing = await prisma.expense.findUniqueOrThrow({ where: { id } });
+    const reimbursed = toNumber(existing.reimbursedAmount);
 
     const expense = await prisma.expense.update({
       where: { id },
@@ -51,11 +65,17 @@ export async function updateExpense(
         amount: parsed.amount,
         receiptUrl: parsed.receiptUrl || null,
         isRecurring: parsed.isRecurring,
+        isRefundable: parsed.isRefundable,
         monthlyNote: parsed.monthlyNote || null,
+        reimbursementStatus:
+          existing.reimbursementStatus === "NOT_NEEDED"
+            ? "NOT_NEEDED"
+            : deriveStatus(parsed.amount, reimbursed),
       },
     });
 
     revalidatePath("/expenses");
+    revalidatePath("/reimburse");
     revalidatePath("/dashboard");
     return { success: true, data: expense };
   } catch (e) {
@@ -68,6 +88,7 @@ export async function deleteExpense(id: string): Promise<ActionResult> {
     await requireAuth();
     await prisma.expense.delete({ where: { id } });
     revalidatePath("/expenses");
+    revalidatePath("/reimburse");
     revalidatePath("/dashboard");
     return { success: true, data: null };
   } catch (e) {

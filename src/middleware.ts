@@ -8,6 +8,7 @@ export const config = {
     "/dashboard/:path*",
     "/bookings/:path*",
     "/expenses/:path*",
+    "/reimburse/:path*",
     "/owners/:path*",
     "/assets/:path*",
     "/property/:path*",

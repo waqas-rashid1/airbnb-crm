@@ -36,18 +36,24 @@ export async function getDashboardMetrics(
   );
 
   const totalRevenue = yearBookings.reduce((s, b) => s + toNumber(b.netRevenue), 0);
-  const totalExpenses = yearExpenses.reduce((s, e) => s + toNumber(e.amount), 0);
+  // Operating P&L excludes refundable outflows (e.g. security deposit)
+  const operatingYearExpenses = yearExpenses.filter((e) => !e.isRefundable);
+  const totalExpenses = operatingYearExpenses.reduce((s, e) => s + toNumber(e.amount), 0);
   const netProfit = totalRevenue - totalExpenses;
 
   const totalInvestment = owners.reduce((s, o) => s + toNumber(o.investment), 0);
   const totalWithdrawals = owners.reduce((s, o) => s + toNumber(o.withdrawal), 0);
   const allTimeRevenue = activeBookings.reduce((s, b) => s + toNumber(b.netRevenue), 0);
-  const allTimeExpenses = expenses.reduce((s, e) => s + toNumber(e.amount), 0);
-  const cashBalance = totalInvestment + allTimeRevenue - allTimeExpenses - totalWithdrawals;
+  const allTimeCashOut = expenses.reduce((s, e) => s + toNumber(e.amount), 0);
+  const cashBalance = totalInvestment + allTimeRevenue - allTimeCashOut - totalWithdrawals;
 
-  const refundableAssets = assets
+  const refundableFromExpenses = expenses
+    .filter((e) => e.isRefundable)
+    .reduce((s, e) => s + toNumber(e.amount), 0);
+  const refundableFromAssets = assets
     .filter((a) => a.isRefundable)
     .reduce((s, a) => s + toNumber(a.currentValue), 0);
+  const refundableAssets = refundableFromExpenses + refundableFromAssets;
 
   const occupancyRate = calculateOccupancyRate(
     activeBookings.map((b) => ({
@@ -137,6 +143,7 @@ export async function getMonthlySeries(
   }
 
   for (const e of expenses) {
+    if (e.isRefundable) continue; // keep monthly P&L operating-only
     const key = monthKey(e.date);
     const row = map.get(key);
     if (row) {

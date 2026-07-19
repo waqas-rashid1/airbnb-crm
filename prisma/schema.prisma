@@ -24,6 +24,7 @@ enum BookingStatus {
 
 enum ExpenseCategory {
   RENT
+  SECURITY_DEPOSIT
   ELECTRICITY
   GAS
   WATER
@@ -34,12 +35,20 @@ enum ExpenseCategory {
   FURNITURE
   APPLIANCES
   LEGAL
+  CONTRACT
   COMMISSION
   SUPPLIES
   SALARY
   MARKETING
   TAXES
   MISCELLANEOUS
+}
+
+enum ReimbursementStatus {
+  PENDING
+  PARTIAL
+  REIMBURSED
+  NOT_NEEDED
 }
 
 enum OwnerTransactionType {
@@ -67,21 +76,26 @@ model User {
 }
 
 model Property {
-  id                String    @id @default(cuid())
-  name              String
-  address           String
-  monthlyRent       Decimal   @db.Decimal(12, 2)
-  securityDeposit   Decimal   @db.Decimal(12, 2)
-  dealerCommission  Decimal   @db.Decimal(12, 2) @default(0)
-  stampPaper        Decimal   @db.Decimal(12, 2) @default(0)
-  leaseStart        DateTime?
-  leaseEnd          DateTime?
-  landlordName      String?
-  landlordPhone     String?
-  landlordEmail     String?
-  landlordNotes     String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  id               String    @id @default(cuid())
+  name             String
+  buildingName     String?
+  roomNumber       String?
+  floor            String?
+  city             String?
+  address          String
+  unitType         String?
+  monthlyRent      Decimal   @db.Decimal(12, 2)
+  securityDeposit  Decimal   @db.Decimal(12, 2)
+  dealerCommission Decimal   @db.Decimal(12, 2) @default(0)
+  stampPaper       Decimal   @db.Decimal(12, 2) @default(0)
+  leaseStart       DateTime?
+  leaseEnd         DateTime?
+  landlordName     String?
+  landlordPhone    String?
+  landlordEmail    String?
+  landlordNotes    String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   bookings  Booking[]
   expenses  Expense[]
@@ -93,28 +107,28 @@ model Property {
 }
 
 model Booking {
-  id            String          @id @default(cuid())
-  bookingCode   String          @unique
-  propertyId    String
-  guestName     String
-  phone         String?
-  platform      BookingPlatform @default(AIRBNB)
-  checkInDate   DateTime
-  checkInTime   String          @default("15:00")
-  checkOutDate  DateTime
-  checkOutTime  String          @default("11:00")
-  nights        Int
-  guestsCount   Int             @default(1)
-  revenue       Decimal         @db.Decimal(12, 2)
-  cleaningFee   Decimal         @db.Decimal(12, 2) @default(0)
-  platformFee   Decimal         @db.Decimal(12, 2) @default(0)
-  discount      Decimal         @db.Decimal(12, 2) @default(0)
-  extraCharges  Decimal         @db.Decimal(12, 2) @default(0)
-  netRevenue    Decimal         @db.Decimal(12, 2)
-  status        BookingStatus   @default(UPCOMING)
-  notes         String?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  id           String          @id @default(cuid())
+  bookingCode  String          @unique
+  propertyId   String
+  guestName    String
+  phone        String?
+  platform     BookingPlatform @default(AIRBNB)
+  checkInDate  DateTime
+  checkInTime  String          @default("15:00")
+  checkOutDate DateTime
+  checkOutTime String          @default("11:00")
+  nights       Int
+  guestsCount  Int             @default(1)
+  revenue      Decimal         @db.Decimal(12, 2)
+  cleaningFee  Decimal         @db.Decimal(12, 2) @default(0)
+  platformFee  Decimal         @db.Decimal(12, 2) @default(0)
+  discount     Decimal         @db.Decimal(12, 2) @default(0)
+  extraCharges Decimal         @db.Decimal(12, 2) @default(0)
+  netRevenue   Decimal         @db.Decimal(12, 2)
+  status       BookingStatus   @default(UPCOMING)
+  notes        String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
 
   property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
@@ -126,40 +140,64 @@ model Booking {
 }
 
 model Expense {
-  id          String          @id @default(cuid())
-  propertyId  String
-  date        DateTime
-  category    ExpenseCategory
-  description String
-  paidBy      String?
-  amount      Decimal         @db.Decimal(12, 2)
-  receiptUrl  String?
-  isRecurring Boolean         @default(false)
-  monthlyNote String?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  id                  String              @id @default(cuid())
+  propertyId          String
+  date                DateTime
+  category            ExpenseCategory
+  description         String
+  paidBy              String?
+  amount              Decimal             @db.Decimal(12, 2)
+  receiptUrl          String?
+  isRecurring         Boolean             @default(false)
+  isRefundable        Boolean             @default(false)
+  reimbursementStatus ReimbursementStatus @default(PENDING)
+  reimbursedAmount    Decimal             @db.Decimal(12, 2) @default(0)
+  monthlyNote         String?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
 
-  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  property       Property        @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  reimbursements Reimbursement[]
 
   @@index([propertyId])
   @@index([date])
   @@index([category])
+  @@index([paidBy])
+  @@index([reimbursementStatus])
   @@map("expenses")
 }
 
+model Reimbursement {
+  id        String   @id @default(cuid())
+  expenseId String
+  amount    Decimal  @db.Decimal(12, 2)
+  date      DateTime @default(now())
+  paidTo    String
+  paidFrom  String?
+  notes     String?
+  createdAt DateTime @default(now())
+
+  expense Expense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+
+  @@index([expenseId])
+  @@index([date])
+  @@index([paidTo])
+  @@map("reimbursements")
+}
+
 model Owner {
-  id           String   @id @default(cuid())
-  propertyId   String
-  name         String
-  email        String?
-  phone        String?
-  investment   Decimal  @db.Decimal(12, 2) @default(0)
-  withdrawal   Decimal  @db.Decimal(12, 2) @default(0)
-  profitDist   Decimal  @db.Decimal(12, 2) @default(0)
-  balance      Decimal  @db.Decimal(12, 2) @default(0)
-  notes        String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id         String   @id @default(cuid())
+  propertyId String
+  name       String
+  email      String?
+  phone      String?
+  investment Decimal  @db.Decimal(12, 2) @default(0)
+  withdrawal Decimal  @db.Decimal(12, 2) @default(0)
+  profitDist Decimal  @db.Decimal(12, 2) @default(0)
+  balance    Decimal  @db.Decimal(12, 2) @default(0)
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   property     Property           @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   transactions OwnerTransaction[]
@@ -169,14 +207,14 @@ model Owner {
 }
 
 model OwnerTransaction {
-  id          String               @id @default(cuid())
-  ownerId     String
-  type        OwnerTransactionType
-  amount      Decimal              @db.Decimal(12, 2)
-  date        DateTime             @default(now())
-  description String?
-  balanceAfter Decimal             @db.Decimal(12, 2)
-  createdAt   DateTime             @default(now())
+  id           String               @id @default(cuid())
+  ownerId      String
+  type         OwnerTransactionType
+  amount       Decimal              @db.Decimal(12, 2)
+  date         DateTime             @default(now())
+  description  String?
+  balanceAfter Decimal              @db.Decimal(12, 2)
+  createdAt    DateTime             @default(now())
 
   owner Owner @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
@@ -186,16 +224,16 @@ model OwnerTransaction {
 }
 
 model Asset {
-  id            String   @id @default(cuid())
-  propertyId    String
-  name          String
-  purchaseDate  DateTime?
-  cost          Decimal  @db.Decimal(12, 2)
-  currentValue  Decimal  @db.Decimal(12, 2)
-  isRefundable  Boolean  @default(false)
-  notes         String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id           String    @id @default(cuid())
+  propertyId   String
+  name         String
+  purchaseDate DateTime?
+  cost         Decimal   @db.Decimal(12, 2)
+  currentValue Decimal   @db.Decimal(12, 2)
+  isRefundable Boolean   @default(false)
+  notes        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 

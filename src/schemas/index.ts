@@ -25,36 +25,52 @@ export const bookingSchema = z
 
 export type BookingInput = z.infer<typeof bookingSchema>;
 
+export const expenseCategories = [
+  "RENT",
+  "SECURITY_DEPOSIT",
+  "ELECTRICITY",
+  "GAS",
+  "WATER",
+  "INTERNET",
+  "CLEANING",
+  "LAUNDRY",
+  "MAINTENANCE",
+  "FURNITURE",
+  "APPLIANCES",
+  "LEGAL",
+  "CONTRACT",
+  "COMMISSION",
+  "SUPPLIES",
+  "SALARY",
+  "MARKETING",
+  "TAXES",
+  "MISCELLANEOUS",
+] as const;
+
 export const expenseSchema = z.object({
   date: z.string().min(1),
-  category: z.enum([
-    "RENT",
-    "ELECTRICITY",
-    "GAS",
-    "WATER",
-    "INTERNET",
-    "CLEANING",
-    "LAUNDRY",
-    "MAINTENANCE",
-    "FURNITURE",
-    "APPLIANCES",
-    "LEGAL",
-    "COMMISSION",
-    "SUPPLIES",
-    "SALARY",
-    "MARKETING",
-    "TAXES",
-    "MISCELLANEOUS",
-  ]),
+  category: z.enum(expenseCategories),
   description: z.string().min(1, "Description is required"),
   paidBy: z.string().optional().nullable(),
   amount: z.coerce.number().min(0.01, "Amount must be greater than 0"),
   receiptUrl: z.string().optional().nullable(),
   isRecurring: z.boolean().default(false),
+  isRefundable: z.boolean().default(false),
   monthlyNote: z.string().optional().nullable(),
 });
 
 export type ExpenseInput = z.infer<typeof expenseSchema>;
+
+export const reimbursementSchema = z.object({
+  expenseId: z.string().min(1),
+  amount: z.coerce.number().min(0.01),
+  date: z.string().min(1),
+  paidTo: z.string().min(1),
+  paidFrom: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
+});
+
+export type ReimbursementInput = z.infer<typeof reimbursementSchema>;
 
 export const ownerSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -88,7 +104,12 @@ export type AssetInput = z.infer<typeof assetSchema>;
 
 export const propertySchema = z.object({
   name: z.string().min(1),
+  buildingName: z.string().optional().nullable(),
+  roomNumber: z.string().optional().nullable(),
+  floor: z.string().optional().nullable(),
+  city: z.string().optional().nullable(),
   address: z.string().min(1),
+  unitType: z.string().optional().nullable(),
   monthlyRent: z.coerce.number().min(0),
   securityDeposit: z.coerce.number().min(0),
   dealerCommission: z.coerce.number().min(0).default(0),

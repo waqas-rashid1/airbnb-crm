@@ -11,6 +11,7 @@ const labels: Record<string, string> = {
   dashboard: "Dashboard",
   bookings: "Bookings",
   expenses: "Expenses",
+  reimburse: "Reimburse",
   owners: "Owners",
   assets: "Assets",
   property: "Property",
